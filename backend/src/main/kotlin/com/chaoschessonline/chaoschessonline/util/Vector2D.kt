@@ -62,7 +62,14 @@ data class Vector2D(val row: Int, val col: Int)
         return Vector2D(-col, row)
     }
 
-
+    /**
+     * Reflect the row component of Vector2D
+     *
+     * @return row-reflected Vector2D
+     */
+    fun reflectRow(): Vector2D {
+        return Vector2D(-row, col)
+    }
 
 
     companion object {
@@ -76,7 +83,6 @@ data class Vector2D(val row: Int, val col: Int)
         val SE = Vector2D(-1, 1)
         val SW = Vector2D(-1, -1)
 
-        //
     }
 }
 
