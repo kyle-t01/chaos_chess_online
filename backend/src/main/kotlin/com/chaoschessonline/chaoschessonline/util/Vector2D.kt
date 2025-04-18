@@ -7,15 +7,15 @@ import kotlin.math.abs
  *
  * Immutable position vector represented by row and col
  *
- * @property row
  * @property col
+ * @property row
  */
-data class Vector2D(val row: Int, val col: Int)
+data class Vector2D(val col: Int, val row: Int)
 {
     // operations on positions
-    operator fun plus(other: Vector2D): Vector2D = Vector2D(row + other.row, col + other.col)
-    operator fun minus(other: Vector2D): Vector2D = Vector2D(row - other.row, col - other.col)
-    operator fun times(scalar: Int): Vector2D = Vector2D(scalar * row, scalar * col)
+    operator fun plus(other: Vector2D): Vector2D = Vector2D(col + other.col, row + other.row)
+    operator fun minus(other: Vector2D): Vector2D = Vector2D(col - other.col, row - other.row)
+    operator fun times(scalar: Int): Vector2D = Vector2D(scalar * col, scalar * row)
 
     /**
      * Distance to another Vector2D
@@ -59,7 +59,7 @@ data class Vector2D(val row: Int, val col: Int)
      * @return rotated Vector2D
      */
     private fun rotate(): Vector2D {
-        return Vector2D(-col, row)
+        return Vector2D(-row, col)
     }
 
     /**
@@ -68,20 +68,22 @@ data class Vector2D(val row: Int, val col: Int)
      * @return row-reflected Vector2D
      */
     fun reflectRow(): Vector2D {
-        return Vector2D(-row, col)
+        return Vector2D(col, -row)
     }
 
 
     companion object {
-        // unit directions
-        val NORTH = Vector2D(1, 0)
-        val SOUTH = Vector2D(-1,0)
-        val EAST = Vector2D(0,1)
-        val WEST = Vector2D(0, -1)
-        val NE = Vector2D(1,1)
-        val NW = Vector2D(1, -1)
-        val SE = Vector2D(-1, 1)
+        // unit directions where (0,0) is located bottom-left
+        val NORTH = Vector2D(0, 1)
+        val SOUTH = Vector2D(0, -1)
+        val EAST  = Vector2D(1, 0)
+        val WEST  = Vector2D(-1, 0)
+
+        val NE = Vector2D(1, 1)
+        val NW = Vector2D(-1, 1)
+        val SE = Vector2D(1, -1)
         val SW = Vector2D(-1, -1)
+
 
     }
 }
