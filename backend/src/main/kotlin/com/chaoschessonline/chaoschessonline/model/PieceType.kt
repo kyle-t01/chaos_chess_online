@@ -13,5 +13,5 @@ enum class PieceType {
     HORSE,
     CHARIOT,
     CANNON,
-
+    GENERAL,
 }
