@@ -77,6 +77,15 @@ class Lobby (
 
     }
 
+    /**
+     * Get is game started
+     *
+     * @return
+     */
+    fun getIsGameStarted():Boolean {
+        return isGameStarted
+    }
+
     // attempt to apply a player's move
 
 
