@@ -5,6 +5,7 @@ enum class EventType {
     JOINED, // player joined a game
     CONNECT, // player attempting to connect
     CONNECTED, // tell player connected
+    UPDATE_CONNECTED, // tell player current connected players
     START, // player attempted to start game
     STARTED, // tell player game started
     END, // player attempting to end game
