@@ -44,6 +44,15 @@ class Lobby (
     }
 
     /**
+     * Get sessions
+     *
+     * @return
+     */
+    fun getSessions():List<WebSocketSession> {
+        return players.keys.toList()
+    }
+
+    /**
      * Add to players
      *
      * @param session
