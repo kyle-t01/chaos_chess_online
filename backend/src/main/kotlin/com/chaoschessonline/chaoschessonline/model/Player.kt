@@ -3,13 +3,13 @@ package com.chaoschessonline.chaoschessonline.model
 import com.chaoschessonline.chaoschessonline.util.Vector2D
 
 /**
- * Agent representing a player in the Game
+ * Player representing a player in the Game
  *
  * @property name
  * @property isAI
  * @property attackDirection
- * @constructor Create empty Agent
+ * @constructor Create empty Player
  */
-data class Agent (val name: String, val isAI: Boolean, var attackDirection: Vector2D) {
+data class Player (val name: String, val isAI: Boolean, var attackDirection: Vector2D) {
 
 }
