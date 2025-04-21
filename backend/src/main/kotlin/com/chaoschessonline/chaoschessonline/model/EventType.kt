@@ -2,7 +2,7 @@ package com.chaoschessonline.chaoschessonline.model
 
 enum class EventType {
     JOIN, // player attempted to join a game
-    JOINED, // player joined a game
+    JOINED, // player joined a game, attacking a side, ie: data: Vector2D.NORTH
     CONNECT, // player attempting to connect
     CONNECTED, // tell player connected
     UPDATE_CONNECTED, // tell player current connected players

@@ -87,8 +87,12 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
                 emitToAllUpdateConnected()
             }
             EventType.JOIN -> {
-                // join this (session) player to a game
-                emit(session,Event(EventType.GAME_STATE_UPDATED, game))
+
+
+                // tell player game was joined
+                emit(session,Event(EventType.JOINED, ""))
+                // tell lobby that game state has updated
+                emitToAll(Event(EventType.GAME_STATE_UPDATED, game))
                 /*
                 // did this player join when the game already started?
                 if (lobby.getIsGameStarted() || gameLoopJob?.isActive == true) {

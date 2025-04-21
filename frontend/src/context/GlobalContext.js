@@ -98,8 +98,8 @@ export const GlobalContextProvider = ({ children }) => {
                 console.log("Updating current lobby!");
                 break;
             case "JOINED":
-                setGameState(eventJSON.data)
-                console.log("You joined, the game state is, ", eventJSON.data);
+                setHasJoined(true)
+                console.log("You joined the game!")
                 break;
             case "GAME_STATE_UPDATED":
                 setGameState(eventJSON.data)
