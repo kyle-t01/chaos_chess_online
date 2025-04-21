@@ -81,7 +81,7 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
                 */
 
                 // signal to the player, of successful connect
-                emit(session,Event(EventType.CONNECTED, player))
+                emit(session,Event(EventType.CONNECTED, game))
                 
                 // update the lobby of all players
                 emitToAllUpdateConnected()

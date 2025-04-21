@@ -91,6 +91,7 @@ export const GlobalContextProvider = ({ children }) => {
                 break;
             case "CONNECTED":
                 setHasConnected(true);
+                setGameState(eventJSON.data)
                 console.log("You have connected to the main lobby!");
                 break;
             case "UPDATE_CONNECTED":
