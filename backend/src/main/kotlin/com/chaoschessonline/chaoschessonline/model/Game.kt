@@ -44,6 +44,25 @@ class Game()
 
     fun printGameState() = println(currentState)
 
-
+    /**
+     * Add player to a Game
+     *
+     * @param player
+     * @return added player to game
+     */
+    fun addPlayer(player: Player?): Boolean {
+        if (player == null || isStarted) return false
+        // check whether player can be added
+        if (player.attackDirection == Player.ATTACK_NORTH && southPlayer != null) {
+            southPlayer = player
+        } else if (player.attackDirection == Player.ATTACK_SOUTH && northPlayer != null) {
+            northPlayer = player
+        } else {
+            // unimplemented attack direction OR player slot full
+            println("error: unknown attack direction or team already full!")
+            return false
+        }
+        return true
+    }
 
 }
