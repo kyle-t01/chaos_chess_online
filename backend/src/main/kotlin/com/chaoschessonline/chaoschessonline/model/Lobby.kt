@@ -70,5 +70,12 @@ class Lobby (
      */
     fun findSessionOfPlayer(player:Player): WebSocketSession? = players.entries.find { it.value == player }?.key
 
+    /**
+     * Find player of session
+     *
+     * @param session
+     * @return player
+     */
+    fun findPlayerOfSession(session: WebSocketSession): Player? = players[session]
 
 }
