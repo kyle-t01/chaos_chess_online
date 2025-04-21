@@ -15,6 +15,7 @@ enum class EventType {
     MOVE, // player attempting to make a move
     MOVE_FAILED, // player move could not be applied
     MOVE_UPDATED, // tell player that move updated (the game state)
+    GAME_STATE_UPDATED, // tell player that game state has updated
     KICKED, // kick player out of lobby
     LEAVE, // player left
     TIME, // time remaining for a timer

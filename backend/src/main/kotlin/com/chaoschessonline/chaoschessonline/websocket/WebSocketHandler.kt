@@ -62,7 +62,13 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
         when (type) {
             EventType.CONNECT -> {
                 val lobbySize = lobby.getPlayers().size
-                val player = Player("GUEST 0$lobbySize", false, Vector2D(0,0))
+                val sentName = data.toString().trim()
+                val name = if (sentName == "") {
+                    "GUEST ${lobbySize+1}"
+                } else {
+                    sentName
+                }
+                val player = Player(name, false, Vector2D(0,0))
                 lobby.addToPlayers(session, player)
                 /*
                 // did this player join when the game already started?
@@ -76,8 +82,29 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
 
                 // signal to the player, of successful connect
                 emit(session,Event(EventType.CONNECTED, player))
+                
                 // update the lobby of all players
                 emitToAllUpdateConnected()
+            }
+            EventType.JOIN -> {
+                // join this (session) player to a game
+                emit(session,Event(EventType.GAME_STATE_UPDATED, game))
+                /*
+                // did this player join when the game already started?
+                if (lobby.getIsGameStarted() || gameLoopJob?.isActive == true) {
+                    // then KICK the player
+                    println("Kicking ${player.name} from game.")
+                    emit(session, Event(EventType.KICKED, ""))
+                    return
+                }
+                */
+                /*
+                // signal to the player, of successful connect
+                emit(session,Event(EventType.CONNECTED, player))
+                // update the lobby of all players
+                emitToAllUpdateConnected()
+                */
+
             }
             EventType.START -> {
                 if (game.isStarted() || gameLoopJob?.isActive == true) {

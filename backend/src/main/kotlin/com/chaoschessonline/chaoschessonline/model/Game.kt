@@ -4,7 +4,7 @@ import com.chaoschessonline.chaoschessonline.util.Vector2D
 
 class Game()
 {
-    private var currentState:BoardState = BoardState.defaultBoardState()
+    var currentState:BoardState = BoardState.defaultBoardState()
     private var southPlayer: Player? = null
     private var northPlayer: Player? = null
 
