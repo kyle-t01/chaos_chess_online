@@ -145,6 +145,7 @@ export const GlobalContextProvider = ({ children }) => {
                 handleStartGame,
                 handlePlayerConnect,
                 handlePlayerJoinNorth, handlePlayerJoinSouth,
+                gameState, setGameState
             }}>
             {children}
         </GlobalContext.Provider>
