@@ -53,9 +53,9 @@ class Game()
     fun addPlayer(player: Player?): Boolean {
         if (player == null || isStarted) return false
         // check whether player can be added
-        if (player.attackDirection == Player.ATTACK_NORTH && southPlayer != null) {
+        if (player.attackDirection == Player.ATTACK_NORTH && southPlayer == null) {
             southPlayer = player
-        } else if (player.attackDirection == Player.ATTACK_SOUTH && northPlayer != null) {
+        } else if (player.attackDirection == Player.ATTACK_SOUTH && northPlayer == null) {
             northPlayer = player
         } else {
             // unimplemented attack direction OR player slot full
