@@ -8,7 +8,7 @@ class Game()
     private var southPlayer: Player? = null
     private var northPlayer: Player? = null
 
-    public var isStarted:Boolean = false
+    private var isStarted:Boolean = false
 
     // getters and setters
     fun getSouthPlayer(): Player? = southPlayer
@@ -29,6 +29,17 @@ class Game()
     fun setNorthPlayerAI(player: Player) {
         this.northPlayer = Player("NORTH AI", true, Vector2D.SOUTH)
     }
+
+    // starting and stopping games
+    fun start() {
+        isStarted = true
+    }
+
+    fun end() {
+        isStarted = false
+    }
+
+    fun isStarted() = isStarted
 
 
     fun printGameState() = println(currentState)

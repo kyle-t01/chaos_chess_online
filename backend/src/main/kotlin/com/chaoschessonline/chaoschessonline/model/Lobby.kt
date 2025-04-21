@@ -31,7 +31,7 @@ class Lobby (
 
         // if there are no more players, then the game has ended
         if (players.isEmpty()) {
-            game.isStarted = false
+            game.end()
         }
         return
     }
@@ -73,7 +73,7 @@ class Lobby (
      */
     fun startGame() {
         println("Game has officially started.")
-        game.isStarted = true
+        game.start()
         // start the game
     }
 
@@ -83,7 +83,7 @@ class Lobby (
      */
     fun endGame() {
         println("Game has been terminated.")
-        game.isStarted =false
+        game.end()
         // reset Game
 
     }
@@ -94,7 +94,7 @@ class Lobby (
      * @return
      */
     fun getIsGameStarted():Boolean {
-        return game.isStarted
+        return game.isStarted()
     }
 
     // attempt to apply a player's move
