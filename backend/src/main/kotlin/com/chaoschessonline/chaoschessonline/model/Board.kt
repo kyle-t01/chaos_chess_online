@@ -15,6 +15,8 @@ data class Board(
 )
 {
     companion object {
+        fun defaultBoard() = Board(XIANGQI_PIECES_BOTTOM_HALF, CHESS_PIECES_TOP_HALF)
+
         val XIANGQI_PIECES_BOTTOM_HALF: Map<Vector2D, PieceType> = mapOf(
             Vector2D(1,0) to PieceType.HORSE,
             Vector2D(4,0) to PieceType.HORSE,
