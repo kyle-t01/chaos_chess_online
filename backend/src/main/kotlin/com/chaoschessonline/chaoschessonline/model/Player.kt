@@ -10,6 +10,6 @@ import com.chaoschessonline.chaoschessonline.util.Vector2D
  * @property attackDirection
  * @constructor Create empty Player
  */
-data class Player (val name: String, val isAI: Boolean, var attackDirection: Vector2D) {
+data class Player (var name: String, val isAI: Boolean, var attackDirection: Vector2D) {
 
 }
