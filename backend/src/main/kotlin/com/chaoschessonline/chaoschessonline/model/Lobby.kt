@@ -13,9 +13,11 @@ import org.springframework.web.socket.WebSocketSession
  */
 class Lobby (
     private val players:MutableMap<WebSocketSession, Player> = mutableMapOf(),
-    private var isGameStarted: Boolean = false
 )
 {
+    // for now, there exists only one Game in the lobby
+    private var game:Game = Game()
+
 
     /**
      * Remove player
@@ -29,7 +31,7 @@ class Lobby (
 
         // if there are no more players, then the game has ended
         if (players.isEmpty()) {
-            isGameStarted = false;
+            game.isStarted = false
         }
         return
     }
@@ -71,7 +73,7 @@ class Lobby (
      */
     fun startGame() {
         println("Game has officially started.")
-        isGameStarted = true
+        game.isStarted = true
         // start the game
     }
 
@@ -81,7 +83,7 @@ class Lobby (
      */
     fun endGame() {
         println("Game has been terminated.")
-        isGameStarted = false
+        game.isStarted =false
         // reset Game
 
     }
@@ -92,7 +94,7 @@ class Lobby (
      * @return
      */
     fun getIsGameStarted():Boolean {
-        return isGameStarted
+        return game.isStarted
     }
 
     // attempt to apply a player's move

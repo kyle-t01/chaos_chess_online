@@ -8,6 +8,8 @@ class Game()
     private var southPlayer: Player? = null
     private var northPlayer: Player? = null
 
+    public var isStarted:Boolean = false
+
     // getters and setters
     fun getSouthPlayer(): Player? = southPlayer
     fun getNorthPlayer(): Player? = northPlayer
