@@ -12,6 +12,7 @@ export const GlobalContextProvider = ({ children }) => {
     const [hasJoined, setHasJoined] = useState(false);
     const [lobby, setLobby] = useState([]);
     const [hasGameStarted, setHasGameStarted] = useState(false);
+    const [gameState, setGameState] = useState(null);
 
     // move, moved, 
 
@@ -35,10 +36,18 @@ export const GlobalContextProvider = ({ children }) => {
         socketRef.current.send(JSON.stringify(event));
         console.log(`sent an event: ${type}: ${data}`);
     }
+
     const handleStartGame = () => {
         sendEvent("START", "");
     }
 
+    const handlePlayerJoinNorth = () => {
+        sendEvent("JOIN", "N");
+    }
+
+    const handlePlayerJoinSouth = () => {
+        sendEvent("JOIN", "S");
+    }
 
     // when the player connects to the lobby, open connection to websocket
     const handlePlayerConnect = () => {
@@ -88,7 +97,12 @@ export const GlobalContextProvider = ({ children }) => {
                 setLobby(eventJSON.data);
                 console.log("Updating current lobby!");
                 break;
+            case "JOINED":
+                setGameState(eventJSON.data)
+                console.log("You joined, the game state is, ", eventJSON.data);
+                break;
             case "GAME_STATE_UPDATED":
+                setGameState(eventJSON.data)
                 console.log("the game state is:", eventJSON.data);
                 break;
             case "START":
@@ -100,7 +114,6 @@ export const GlobalContextProvider = ({ children }) => {
                 console.log("Game has ended!");
                 break;
 
-                break;
             case "KICK":
                 setHasGameStarted(false);
                 setHasJoined(false)
@@ -131,6 +144,7 @@ export const GlobalContextProvider = ({ children }) => {
                 sendEvent,
                 handleStartGame,
                 handlePlayerConnect,
+                handlePlayerJoinNorth, handlePlayerJoinSouth,
             }}>
             {children}
         </GlobalContext.Provider>
