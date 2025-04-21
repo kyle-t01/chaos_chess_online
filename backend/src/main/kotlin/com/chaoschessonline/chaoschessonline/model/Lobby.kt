@@ -1,5 +1,6 @@
 package com.chaoschessonline.chaoschessonline.model
 
+import com.chaoschessonline.chaoschessonline.util.Vector2D
 import org.springframework.web.socket.WebSocketSession
 
 /**
@@ -70,9 +71,14 @@ class Lobby (
      */
     fun updatePlayer(session: WebSocketSession, player:Player){
         val original:Player? = players[session]
+        //TODO: later abstract this into Player class
         if(original != null){
-            original.name = player.name
-            original.attackDirection = player.attackDirection
+            if (player.name.trim() != Player.DEFAULT_NAME) {
+                original.name = player.name
+            }
+            if (player.attackDirection != Player.NO_ATTACK_DIRECTION) {
+                original.attackDirection = player.attackDirection
+            }
         }
     }
 
