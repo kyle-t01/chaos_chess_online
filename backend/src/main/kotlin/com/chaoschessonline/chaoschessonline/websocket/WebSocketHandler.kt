@@ -1,9 +1,6 @@
 package com.chaoschessonline.chaoschessonline.websocket
 
-import com.chaoschessonline.chaoschessonline.model.Event
-import com.chaoschessonline.chaoschessonline.model.EventType
-import com.chaoschessonline.chaoschessonline.model.Lobby
-import com.chaoschessonline.chaoschessonline.model.Player
+import com.chaoschessonline.chaoschessonline.model.*
 
 import kotlinx.coroutines.*
 
@@ -34,8 +31,11 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
     // track gameLoop coroutine
     private var gameLoopJob: Job? = null
 
-    // the game lobby
+    // the lobby
     private val lobby: Lobby = Lobby()
+
+    // the game (ONLY one game is played at a time
+    private val  game:Game = Game()
 
     // remove player from lobby on disconnect
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
@@ -43,7 +43,7 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
         emitToAllUpdateConnected()
 
         // when the game has ended, cancel to gameLoopJob
-        if (!lobby.getIsGameStarted()) {
+        if (!game.isStarted()) {
             gameLoopJob?.cancel()
             gameLoopJob = null
         }
@@ -80,11 +80,11 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
                 emitToAllUpdateConnected()
             }
             EventType.START -> {
-                if (lobby.getIsGameStarted() || gameLoopJob?.isActive == true) {
+                if (game.isStarted() || gameLoopJob?.isActive == true) {
                     // game already started
                     return
                 }
-                lobby.startGame()
+
                 // emit to everyone the current players and spectators?
 
                 /*

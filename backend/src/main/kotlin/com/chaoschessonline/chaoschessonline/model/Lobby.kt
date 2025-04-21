@@ -8,17 +8,12 @@ import org.springframework.web.socket.WebSocketSession
  * Contains all actively connected players
  *
  * @property players
- * @property isGameStarted
  * @constructor Create empty Lobby
  */
 class Lobby (
     private val players:MutableMap<WebSocketSession, Player> = mutableMapOf(),
 )
 {
-    // for now, there exists only one Game in the lobby
-    private var game:Game = Game()
-
-
     /**
      * Remove player
      *
@@ -31,7 +26,7 @@ class Lobby (
 
         // if there are no more players, then the game has ended
         if (players.isEmpty()) {
-            game.end()
+            println("No players left!")
         }
         return
     }
@@ -48,7 +43,7 @@ class Lobby (
     /**
      * Get sessions
      *
-     * @return
+     * @return list of sessions
      */
     fun getSessions():List<WebSocketSession> {
         return players.keys.toList()
@@ -68,37 +63,12 @@ class Lobby (
     }
 
     /**
-     * Start game
+     * Find session of player
      *
+     * @param player
+     * @return session
      */
-    fun startGame() {
-        println("Game has officially started.")
-        game.start()
-        // start the game
-    }
-
-    /**
-     * End game
-     *
-     */
-    fun endGame() {
-        println("Game has been terminated.")
-        game.end()
-        // reset Game
-
-    }
-
-    /**
-     * Get is game started
-     *
-     * @return
-     */
-    fun getIsGameStarted():Boolean {
-        return game.isStarted()
-    }
-
-    // attempt to apply a player's move
-
+    fun findSessionOfPlayer(player:Player): WebSocketSession? = players.entries.find { it.value == player }?.key
 
 
 }
