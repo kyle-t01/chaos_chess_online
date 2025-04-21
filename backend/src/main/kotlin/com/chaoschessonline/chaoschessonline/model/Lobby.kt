@@ -63,6 +63,20 @@ class Lobby (
     }
 
     /**
+     * Update player (if it exists)
+     *
+     * @param session
+     * @param player
+     */
+    fun updatePlayer(session: WebSocketSession, player:Player){
+        val original:Player? = players[session]
+        if(original != null){
+            original.name = player.name
+            original.attackDirection = player.attackDirection
+        }
+    }
+
+    /**
      * Find session of player
      *
      * @param player
