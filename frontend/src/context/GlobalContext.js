@@ -1,6 +1,6 @@
 // store important global variables
 
-import { useContext, createContext, useState, useRef } from "react";
+import { useContext, createContext, useState, useRef, useEffect } from "react";
 
 const GlobalContext = createContext();
 
@@ -21,19 +21,9 @@ export const GlobalContextProvider = ({ children }) => {
 
     // connect to websocket automatically
     useEffect(() => {
-        if (playerName && !hasConnected) {
-            console.log("connecting to websocket...")
-            handlePlayerConnect();
-        }
+        handlePlayerConnect()
 
-        // Optional cleanup: disconnect on unmount
-        return () => {
-            if (socketRef.current) {
-                console.log("closing websocket...")
-                socketRef.current.close();
-            }
-        };
-    }, []); // Only run once on mount
+    }, []);
 
 
     // ie: sendEvent(STRING, Object)
@@ -53,11 +43,7 @@ export const GlobalContextProvider = ({ children }) => {
     // when the player connects to the lobby, open connection to websocket
     const handlePlayerConnect = () => {
         const userName = playerName.trim() ?? ""
-        if (!playerName.trim()) return;
-        // close existing socket
-        if (socketRef.current) {
-            socketRef.current.close();
-        }
+
         // attempt connection
         if (!socketRef.current || socketRef.current.readyState === WebSocket.CLOSED) {
             socketRef.current = new WebSocket('ws://localhost:8080/game');
@@ -65,7 +51,7 @@ export const GlobalContextProvider = ({ children }) => {
         // establish connection
         socketRef.current.onopen = () => {
             console.log('websocket open!');
-            sendEvent('join', userName);
+            sendEvent('CONNECT', userName);
         };
         // receive message
         socketRef.current.onmessage = (message) => {
@@ -86,7 +72,7 @@ export const GlobalContextProvider = ({ children }) => {
         const eventJSON = JSON.parse(message.data);
         console.log("server sent data:");
         console.log(eventJSON);
-        switch (gameEvent.type) {
+        switch (eventJSON.type) {
             case "TIME":
                 const time = eventJSON.data
                 setTimeLeft(time);
@@ -94,11 +80,11 @@ export const GlobalContextProvider = ({ children }) => {
             case "TOTAL_TIME":
                 setTotalTime(eventJSON.data);
                 break;
-            case "JOIN":
-                setHasJoined(true);
-                console.log("You have joined the lobby!");
+            case "CONNECTED":
+                setHasConnected(true);
+                console.log("You have connected to the main lobby!");
                 break;
-            case "LOBBY_UPDATE":
+            case "UPDATE_CONNECTED":
                 setLobby(eventJSON.data);
                 console.log("Updating current lobby!");
                 break;
@@ -108,20 +94,9 @@ export const GlobalContextProvider = ({ children }) => {
                 break;
             case "END":
                 setHasGameStarted(false);
-                setUserAnswer(null);
-                setIsShowAnswer(false)
-                setQuestion(null)
                 console.log("Game has ended!");
                 break;
-            case "QUESTION":
-                setIsShowAnswer(false);
-                setQuestion(eventJSON.data);
-                setUserAnswer(null);
-                console.log("GOT A QUESTION");
-                break;
-            case "SHOW":
-                setIsShowAnswer(true);
-                console.log("SHOWING CURRENT ANSWERS");
+
                 break;
             case "KICK":
                 setHasGameStarted(false);
@@ -135,7 +110,7 @@ export const GlobalContextProvider = ({ children }) => {
                 console.log("Your answer was received!");
                 break;
             default:
-                alert("UNKNOWN IMPLEMENTATION of", eventJSON);
+                console.log("UNKNOWN IMPLEMENTATION of", eventJSON.type);
         }
     }
 
@@ -149,14 +124,10 @@ export const GlobalContextProvider = ({ children }) => {
                 hasConnected, setHasConnected,
                 lobby, setLobby,
                 hasGameStarted, setHasGameStarted,
-                question, setQuestion,
-                userAnswer, setUserAnswer,
-                isShowAnswer, setIsShowAnswer,
                 timeLeft, totalTime,
-                sendGameEvent,
+                sendEvent,
                 handleStartGame,
-                handlePlayerJoin,
-                handleUserAnswer,
+                handlePlayerConnect,
             }}>
             {children}
         </GlobalContext.Provider>
