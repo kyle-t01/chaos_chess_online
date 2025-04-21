@@ -7,8 +7,9 @@ class Game()
     var currentState:BoardState = BoardState.defaultBoardState()
     private var southPlayer: Player? = null
     private var northPlayer: Player? = null
-
     private var isStarted:Boolean = false
+    private var dimension:Vector2D = BoardState.DIM_6
+
 
     // getters and setters
     fun getSouthPlayer(): Player? = southPlayer
@@ -33,6 +34,8 @@ class Game()
     // starting and stopping games
     fun start() {
         isStarted = true
+        // tmp workaround for storing board dimension size
+        BoardState.dimension = dimension
     }
 
     fun end() {
