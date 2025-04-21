@@ -87,27 +87,34 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
                 emitToAllUpdateConnected()
             }
             EventType.JOIN -> {
+                // inform everyone of current game state
+                emitToAll(Event(EventType.GAME_STATE_UPDATED, game))
+
+                // get the attacking direction of this player
+                val dirString:String = data.toString()
+                val attackDir:Vector2D = if (dirString == "N") {
+                    Player.ATTACK_SOUTH
+                } else {
+                    Player.ATTACK_NORTH
+                }
+                // update the player in the lobby
+               lobby.updatePlayer(session, Player("", false, attackDir))
+
+                // if the game has started, then ignore JOIN
+                if (game.isStarted() || gameLoopJob?.isActive == true) {
+                    emit(session,Event(EventType.GAME_STATE_UPDATED, game))
+                    return
+                }
+
+                // join player to this lobby
+                val isAdded = game.addPlayer(lobby.findPlayerOfSession(session))
+                if (!isAdded) return
 
 
                 // tell player game was joined
                 emit(session,Event(EventType.JOINED, ""))
                 // tell lobby that game state has updated
                 emitToAll(Event(EventType.GAME_STATE_UPDATED, game))
-                /*
-                // did this player join when the game already started?
-                if (lobby.getIsGameStarted() || gameLoopJob?.isActive == true) {
-                    // then KICK the player
-                    println("Kicking ${player.name} from game.")
-                    emit(session, Event(EventType.KICKED, ""))
-                    return
-                }
-                */
-                /*
-                // signal to the player, of successful connect
-                emit(session,Event(EventType.CONNECTED, player))
-                // update the lobby of all players
-                emitToAllUpdateConnected()
-                */
 
             }
             EventType.START -> {
