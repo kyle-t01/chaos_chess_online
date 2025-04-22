@@ -16,6 +16,17 @@ data class Board(
     val board: Array<Char> = arrayOf()
 )
 {
+    /**
+     * Get piece char (assume position is not out of bounds)
+     *
+     * @param position
+     * @return
+     */
+    fun getPieceChar(position: Vector2D): Char {
+        assert(positionInsideBounds(position))
+        return board[getIndexFromPosition(position)]
+    }
+
     companion object {
         fun defaultBoard():Board {
             val size = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
@@ -97,6 +108,7 @@ data class Board(
             val withinCol:Boolean = pos.col >= 0 && pos.col < Board.DEFAULT_DIMENSION.col
             return withinCol && withinRow
         }
+
     }
 
 
