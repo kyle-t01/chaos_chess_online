@@ -19,7 +19,7 @@ data class Board(
     companion object {
         fun defaultBoard():Board {
             val size = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
-            val array:Array<Char> = Array(size){'.'}
+            val array:Array<Char> = Array(size){' '}
             // insert xiangqi pieces to board (south player)
             for (pos in XIANGQI_PIECES_BOTTOM_HALF.keys) {
                 val i = getIndexFromPosition(pos)
