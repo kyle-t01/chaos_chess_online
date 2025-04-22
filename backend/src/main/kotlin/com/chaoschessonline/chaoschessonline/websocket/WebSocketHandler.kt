@@ -39,7 +39,9 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
 
     // remove player from lobby on disconnect
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
+        val player:Player? = lobby.findPlayerOfSession(session)
         lobby.removePlayer(session)
+        game.removePlayer(player)
         emitToAllUpdateConnected()
 
         // when the game has ended, cancel to gameLoopJob

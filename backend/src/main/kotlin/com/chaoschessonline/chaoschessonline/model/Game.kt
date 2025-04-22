@@ -70,4 +70,19 @@ class Game()
         return true
     }
 
+    fun removePlayer(player: Player?) {
+        // remove corresponding player
+        if (southPlayer == player) {
+            southPlayer = null
+            println("Game: removing south player")
+        } else if (northPlayer == player) {
+            northPlayer = null
+            println("Game: removing north player")
+        } else {
+            // ignore case where removing non-existing player
+            return
+        }
+        return
+    }
+
 }
