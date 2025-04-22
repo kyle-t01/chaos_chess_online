@@ -1,6 +1,7 @@
 package com.chaoschessonline.chaoschessonline.model
 
 import com.chaoschessonline.chaoschessonline.util.Vector2D
+import kotlin.reflect.jvm.internal.impl.incremental.components.Position
 
 /**
  * Board
@@ -12,12 +13,27 @@ import com.chaoschessonline.chaoschessonline.util.Vector2D
  * @constructor Create empty Board
  */
 data class Board(
-    val southPiecesList: Map<Vector2D, PieceType> = mapOf(),
-    val northPiecesList: Map<Vector2D, PieceType> = mapOf()
+    val board: Array<Char> = arrayOf()
 )
 {
     companion object {
-        fun defaultBoard() = Board(XIANGQI_PIECES_BOTTOM_HALF, CHESS_PIECES_TOP_HALF)
+        fun defaultBoard():Board {
+            val size = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
+            val array:Array<Char> = Array(size){'.'}
+            // insert xiangqi pieces to board (south player)
+            for (pos in XIANGQI_PIECES_BOTTOM_HALF.keys) {
+                val i = getIndexFromPosition(pos)
+                val c = PieceType.toChar(XIANGQI_PIECES_BOTTOM_HALF[pos]!!, Vector2D.NORTH)
+                array[i] = c
+            }
+            // insert chess pieces to board (north player)
+            for (pos in CHESS_PIECES_TOP_HALF.keys) {
+                val i = getIndexFromPosition(pos)
+                val c = PieceType.toChar(CHESS_PIECES_TOP_HALF[pos]!!, Vector2D.SOUTH)
+                array[i] = c
+            }
+            return Board(array)
+        }
 
         val XIANGQI_PIECES_BOTTOM_HALF: Map<Vector2D, PieceType> = mapOf(
             Vector2D(1,0) to PieceType.HORSE,
@@ -46,6 +62,18 @@ data class Board(
             Vector2D(4,4) to PieceType.PAWN,
             Vector2D(5,4) to PieceType.PAWN,
         )
+
+        val DEFAULT_DIMENSION = Vector2D(6,6)
+
+        fun getIndexFromPosition(position: Vector2D): Int {
+            return position.col + position.row * DEFAULT_DIMENSION.col
+        }
+
+        fun getPositionFromIndex(index: Int): Vector2D {
+            val col:Int = index % DEFAULT_DIMENSION.col
+            val row:Int =  index / DEFAULT_DIMENSION.row
+            return Vector2D(col, row)
+        }
     }
 
 
