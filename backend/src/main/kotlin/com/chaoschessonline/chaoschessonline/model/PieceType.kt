@@ -38,5 +38,10 @@ enum class PieceType {
             }
             return if (isNorthPlayer) char else char.lowercaseChar()
         }
+
+        fun isCharEnemy(us: Char, them: Char):Boolean {
+            if (us == ' ' || them == ' ') return false
+            return us.isUpperCase() != them.isUpperCase()
+        }
     }
 }
