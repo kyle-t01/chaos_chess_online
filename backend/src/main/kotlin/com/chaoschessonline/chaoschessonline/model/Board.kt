@@ -7,13 +7,13 @@ import com.chaoschessonline.chaoschessonline.util.Vector2D
  *
  * More accurately, *not* a physical Board, but just a list of Pieces
  *
- * @property playerPieceList
- * @property enemyPieceList
+ * @property southPiecesList
+ * @property northPiecesList
  * @constructor Create empty Board
  */
 data class Board(
-    val playerPieceList: Map<Vector2D, PieceType> = mapOf(),
-    val enemyPieceList: Map<Vector2D, PieceType> = mapOf()
+    val southPiecesList: Map<Vector2D, PieceType> = mapOf(),
+    val northPiecesList: Map<Vector2D, PieceType> = mapOf()
 )
 {
     companion object {
