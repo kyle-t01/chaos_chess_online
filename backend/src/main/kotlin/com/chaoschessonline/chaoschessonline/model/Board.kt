@@ -77,17 +77,25 @@ data class Board(
         }
 
         /**
-         * Get index from applying vector
+         * Get index from applying vector (DANGEROUS)
+         *
+         * Assumes that vector will not lead it out of bounds
          *
          * @param index
          * @param vector
-         * @return result index (possibly out of bounds)
+         * @return result index
          */
         fun getIndexFromApplyingVector(index: Int, vector: Vector2D): Int {
             val currPos = getPositionFromIndex(index)
             val resultantPos = currPos + vector
             val resultantIndex = getIndexFromPosition(resultantPos)
             return resultantIndex
+        }
+
+        fun positionInsideBounds(pos: Vector2D):Boolean {
+            val withinRow:Boolean = pos.row >= 0 && pos.row < Board.DEFAULT_DIMENSION.row
+            val withinCol:Boolean = pos.col >= 0 && pos.col < Board.DEFAULT_DIMENSION.col
+            return withinCol && withinRow
         }
     }
 
