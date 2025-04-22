@@ -103,12 +103,22 @@ data class Board(
             return resultantIndex
         }
 
+        /**
+         * Position inside bounds
+         *
+         * @param pos
+         * @return
+         */
         fun positionInsideBounds(pos: Vector2D):Boolean {
             val withinRow:Boolean = pos.row >= 0 && pos.row < Board.DEFAULT_DIMENSION.row
             val withinCol:Boolean = pos.col >= 0 && pos.col < Board.DEFAULT_DIMENSION.col
             return withinCol && withinRow
         }
 
+        fun isPositionInNorth(pos: Vector2D):Boolean {
+            val rowsPerSide = Board.DEFAULT_DIMENSION.row / 2
+            return pos.row + 1 > rowsPerSide
+        }
     }
 
 
