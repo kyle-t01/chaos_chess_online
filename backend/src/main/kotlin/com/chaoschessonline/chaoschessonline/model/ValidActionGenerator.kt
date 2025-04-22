@@ -19,8 +19,9 @@ class ValidActionGenerator {
             var possibleEndIndices:List<Int> = listOf();
             when(pieceChar){
                 'P' -> {possibleEndIndices = findPawnActions(index, state)}
+                'R' -> {possibleEndIndices = findRookActions(index, state)}
                 'Z' -> {possibleEndIndices = findFootSoldierActions(index, state)}
-                //'R' -> {possibleEndIndices = findRookActions(index, state)}
+
                 //'B' -> {possibleEndIndices = findPawnActions(index, state)}
                 //'N' -> findKnightActions()
                 /*
@@ -105,6 +106,42 @@ class ValidActionGenerator {
                 // if we have NOT crossed half of the board. then ignore other moves
                 if (!Board.isPositionInNorth(initialPos)) break
             }
+            return possibleEndIndices
+        }
+
+        fun findRookActions(index: Int, state: BoardState):List<Int> {
+            val attackDirection = state.attackingDirection
+            val initialPos = Board.getPositionFromIndex(index)
+            val thisChar:Char = state.board.board[index]
+            println("THIS CHAR is $thisChar")
+            val possibleEndIndices:MutableList<Int> = mutableListOf()
+
+            // Rook moves
+            val unitDirections:List<Vector2D> = listOf(Vector2D.NORTH, Vector2D.SOUTH, Vector2D.EAST, Vector2D.WEST)
+
+            // extend in each unit direction, can move there as long as not an ally
+            for (dir in unitDirections) {
+                // extend in each direction until blocked or out-of-bounds
+                var endPos = initialPos + dir
+                while (Board.positionInsideBounds(endPos)) {
+
+                    // if an ally, it is blocked
+                    val thatChar:Char = state.board.getPieceChar(endPos)
+                    println("LOOKING AT $endPos which contains $thatChar")
+                    if(PieceType.isAlly(thisChar, thatChar)) {
+                        println("ALLY BLOCKED ROOK AT $endPos")
+                        break
+                    };
+                    possibleEndIndices.add(Board.getIndexFromPosition(endPos))
+                    // if hit an enemy, do not look further
+                    if(PieceType.isEnemy(thisChar, thatChar)) {
+                        println("ENEMY BLOCKED ROOK AT $endPos")
+                        break
+                    }
+                    endPos += dir
+                }
+            }
+
             return possibleEndIndices
         }
     }
