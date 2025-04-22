@@ -64,6 +64,7 @@ data class Board(
         )
 
         val DEFAULT_DIMENSION = Vector2D(6,6)
+        val DEFAULT_SIZE = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
 
         fun getIndexFromPosition(position: Vector2D): Int {
             return position.col + position.row * DEFAULT_DIMENSION.col
@@ -73,6 +74,20 @@ data class Board(
             val col:Int = index % DEFAULT_DIMENSION.col
             val row:Int =  index / DEFAULT_DIMENSION.row
             return Vector2D(col, row)
+        }
+
+        /**
+         * Get index from applying vector
+         *
+         * @param index
+         * @param vector
+         * @return result index (possibly out of bounds)
+         */
+        fun getIndexFromApplyingVector(index: Int, vector: Vector2D): Int {
+            val currPos = getPositionFromIndex(index)
+            val resultantPos = currPos + vector
+            val resultantIndex = getIndexFromPosition(resultantPos)
+            return resultantIndex
         }
     }
 
