@@ -51,9 +51,9 @@ data class Board(
         val CHESS_PIECES_TOP_HALF: Map<Vector2D, PieceType> = mapOf(
             Vector2D(0,5) to PieceType.ROOK,
             Vector2D(1,5) to PieceType.BISHOP,
-            Vector2D(2,5) to PieceType.SCHOLAR,
-            Vector2D(3,5) to PieceType.QUEEN,
-            Vector2D(4,5) to PieceType.KING,
+            Vector2D(2,5) to PieceType.QUEEN,
+            Vector2D(3,5) to PieceType.KING,
+            Vector2D(4,5) to PieceType.BISHOP,
             Vector2D(5,5) to PieceType.ROOK,
             Vector2D(0,4) to PieceType.PAWN,
             Vector2D(1,4) to PieceType.PAWN,
