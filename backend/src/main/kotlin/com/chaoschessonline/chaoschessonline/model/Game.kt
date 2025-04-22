@@ -8,7 +8,7 @@ class Game()
     private var southPlayer: Player? = null
     private var northPlayer: Player? = null
     private var isStarted:Boolean = false
-    private var dimension:Vector2D = BoardState.DIM_6
+    private var dimension:Vector2D = Board.DEFAULT_DIMENSION
 
 
     // getters and setters
