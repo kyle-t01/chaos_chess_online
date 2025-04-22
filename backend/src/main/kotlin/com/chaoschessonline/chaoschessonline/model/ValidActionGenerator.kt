@@ -21,8 +21,11 @@ class ValidActionGenerator {
                 'P' -> {possibleEndIndices = findPawnActions(index, state)}
                 'R' -> {possibleEndIndices = findRookActions(index, state)}
                 'B' -> {possibleEndIndices = findBishopActions(index, state)}
-                'Z' -> {possibleEndIndices = findFootSoldierActions(index, state)}
                 'Q' -> {possibleEndIndices = findQueenActions(index, state)}
+                'K' -> {possibleEndIndices = findKingActions(index, state)}
+                // xiangqi pieces
+                'Z' -> {possibleEndIndices = findFootSoldierActions(index, state)}
+                'M' -> {possibleEndIndices = findHorseActions(index, state)}
                 else -> {println("ERROR: Unimplemented or Unknown pieceChar!!!")}
                 //'B' -> {possibleEndIndices = findPawnActions(index, state)}
                 //'N' -> findKnightActions()
@@ -128,6 +131,8 @@ class ValidActionGenerator {
         /**
          * Find slider actions (such as Rook, Chariot, Queen, Bishop)
          *
+         * TODO: have maxDistance as a parameter
+         *
          * @param index
          * @param state
          * @param directions
@@ -137,7 +142,6 @@ class ValidActionGenerator {
             val attackDirection = state.attackingDirection
             val initialPos = Board.getPositionFromIndex(index)
             val thisChar:Char = state.board.board[index]
-            println("THIS CHAR is $thisChar")
             val possibleEndIndices:MutableList<Int> = mutableListOf()
 
 
@@ -200,6 +204,40 @@ class ValidActionGenerator {
         fun findQueenActions(index: Int, state: BoardState):List<Int> {
             val unitDirections:List<Vector2D> = Vector2D.OMNI_DIRS
             return findSliderActions(index, state, unitDirections)
+        }
+
+        /**
+         * Find king actions
+         *
+         * In this variant, king can move into check
+         * TODO: technically a slider with max distance of 1
+         *
+         * @param index
+         * @param state
+         * @return
+         */
+        fun findKingActions(index: Int, state: BoardState):List<Int> {
+            val unitDirections:List<Vector2D> = Vector2D.OMNI_DIRS
+            val initialPos = Board.getPositionFromIndex(index)
+            val thisChar:Char = state.board.board[index]
+            val possibleEndIndices:MutableList<Int> = mutableListOf()
+
+            for (dir in unitDirections) {
+                // look at each end position
+                val endPos = initialPos + dir
+                if (Board.positionInsideBounds(endPos)) {
+
+                    // if an ally, it is blocked
+                    val thatChar:Char = state.board.getPieceChar(endPos)
+                    if(PieceType.isAlly(thisChar, thatChar)) {
+                        continue
+                    }
+                    possibleEndIndices.add(Board.getIndexFromPosition(endPos))
+
+                }
+            }
+
+            return possibleEndIndices
         }
     }
 
