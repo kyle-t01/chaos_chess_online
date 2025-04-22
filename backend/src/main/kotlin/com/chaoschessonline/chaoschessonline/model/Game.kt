@@ -38,8 +38,6 @@ class Game()
     // starting and stopping games
     fun start() {
         isStarted = true
-        // tmp workaround for storing board dimension size
-        BoardState.dimension = dimension
     }
 
     fun end() {
