@@ -42,12 +42,47 @@ const ChessBoard = () => {
         const piece = board[idx]
         return (
             <div className="square" key={idx}>
-                {piece}
+                {renderPiece(piece)}
             </div>
         );
     }
 
+    const renderPiece = (c) => {
+        if (!c || c === ' ') return;
+        const isLower = c === c.toLowerCase()
+        const color = isLower ? 'red' : 'black';
+        const style = {
+            color: color,
+            border: `2px solid ${color}`,
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '22px',
+            fontWeight: 'bold',
+            backgroundColor: 'white'
+        }
 
+        switch (c.toUpperCase()) {
+            case 'P': return <span style={style}>♟</span>
+            case 'B': return <span style={style}>♝</span>
+            case 'N': return <span style={style}>♞</span>
+            case 'R': return <span style={style}>♜</span>
+            case 'Q': return <span style={style}>♛</span>
+            case 'K': return <span style={style}>♚</span>
+            case 'Z': return <span style={style}>卒</span>
+            case 'S': return <span style={style}>士</span>
+            case 'X': return <span style={style}>象</span>
+            case 'M': return <span style={style}>馬</span>
+            case 'J': return <span style={style}>車</span>
+            case 'C': return <span style={style}>砲</span>
+            case 'G': return <span style={style}>將</span>
+            case '.' || ' ': return <span></span>
+            default: return <span style={style}>{c}</span>
+        }
+    }
 
     return (
         <div className="chess-board">
