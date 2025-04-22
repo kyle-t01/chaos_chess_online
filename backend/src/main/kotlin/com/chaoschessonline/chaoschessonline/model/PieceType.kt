@@ -39,9 +39,52 @@ enum class PieceType {
             return if (isNorthPlayer) char else char.lowercaseChar()
         }
 
-        fun isCharEnemy(us: Char, them: Char):Boolean {
+
+        /**
+         * Is ally
+         *
+         * @param us
+         * @param them
+         * @return
+         */
+        fun isAlly(us: Char, them: Char):Boolean {
+            if (us == ' ' || them == ' ') return false
+            return us.isUpperCase() == them.isUpperCase()
+        }
+
+        /**
+         * Is enemy
+         *
+         * @param us
+         * @param them
+         * @return
+         */
+        fun isEnemy(us: Char, them: Char):Boolean {
             if (us == ' ' || them == ' ') return false
             return us.isUpperCase() != them.isUpperCase()
         }
+
+        /**
+         * Is non-enemy (ie, ' ' or ally)
+         *
+         * @param us
+         * @param them
+         * @return
+         */
+        fun isNonEnemy(us: Char, them: Char):Boolean {
+            return them == ' ' || isAlly(us, them)
+        }
+
+        /**
+         * Is non-ally (iem ' ' or enemy)
+         *
+         * @param us
+         * @param them
+         * @return
+         */
+        fun isNonAlly(us: Char, them: Char):Boolean {
+            return them == ' ' || isEnemy(us, them)
+        }
+
     }
 }
