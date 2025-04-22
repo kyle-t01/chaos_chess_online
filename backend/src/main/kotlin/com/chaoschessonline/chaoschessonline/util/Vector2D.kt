@@ -84,6 +84,9 @@ data class Vector2D(val col: Int, val row: Int)
         val SE = Vector2D(1, -1)
         val SW = Vector2D(-1, -1)
 
+        val STRAIGHTS = listOf(NORTH, SOUTH, EAST, WEST)
+        val DIAGONALS = listOf(NE, NW, SE, SW)
+        val OMNI_DIRS = STRAIGHTS + DIAGONALS
 
     }
 }

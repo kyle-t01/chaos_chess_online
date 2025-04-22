@@ -172,7 +172,7 @@ class ValidActionGenerator {
          */
         fun findRookActions(index: Int, state: BoardState):List<Int> {
             // Rook moves
-            val unitDirections:List<Vector2D> = listOf(Vector2D.NORTH, Vector2D.SOUTH, Vector2D.EAST, Vector2D.WEST)
+            val unitDirections:List<Vector2D> = Vector2D.STRAIGHTS
             return findSliderActions(index, state, unitDirections)
         }
 
@@ -186,7 +186,7 @@ class ValidActionGenerator {
         fun findBishopActions(index: Int, state: BoardState):List<Int> {
 
             // Bishop moves
-            val unitDirections:List<Vector2D> = listOf(Vector2D.NE, Vector2D.NW, Vector2D.SE, Vector2D.SW)
+            val unitDirections:List<Vector2D> = Vector2D.DIAGONALS
             return findSliderActions(index, state, unitDirections)
         }
 
@@ -198,7 +198,7 @@ class ValidActionGenerator {
          * @return
          */
         fun findQueenActions(index: Int, state: BoardState):List<Int> {
-            val unitDirections:List<Vector2D> = listOf(Vector2D.NE, Vector2D.NW, Vector2D.SE, Vector2D.SW, Vector2D.NORTH, Vector2D.SOUTH, Vector2D.EAST, Vector2D.WEST)
+            val unitDirections:List<Vector2D> = Vector2D.OMNI_DIRS
             return findSliderActions(index, state, unitDirections)
         }
     }
