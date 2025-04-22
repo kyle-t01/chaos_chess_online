@@ -19,10 +19,12 @@ class ValidActionGenerator {
             var possibleEndIndices:List<Int> = listOf();
             when(pieceChar){
                 'P' -> {possibleEndIndices = findPawnActions(index, state)}
-                //'B' -> findBishopActions()
+                'Z' -> {possibleEndIndices = findFootSoldierActions(index, state)}
+                //'R' -> {possibleEndIndices = findRookActions(index, state)}
+                //'B' -> {possibleEndIndices = findPawnActions(index, state)}
                 //'N' -> findKnightActions()
                 /*
-                'R' ->
+
                 'Q' ->
                 'K' ->
                 'Z' ->
@@ -69,7 +71,7 @@ class ValidActionGenerator {
                 if (!Board.positionInsideBounds(pos)) continue
                 // within bounds
                 val thatChar = state.board.getPieceChar(pos)
-                if (!PieceType.isCharEnemy(thisChar, thatChar)) continue
+                if (!PieceType.isEnemy(thisChar, thatChar)) continue
                 // is an enemy, so valid attack action
                 val endIndex = Board.getIndexFromPosition(pos)
                 possibleEndIndices.add(endIndex)
@@ -78,6 +80,32 @@ class ValidActionGenerator {
 
             return possibleEndIndices
 
+        }
+
+        fun findFootSoldierActions(index: Int, state: BoardState): List<Int> {
+            // unit vector for attack direction
+            val attackDirection = state.attackingDirection
+            val initialPos = Board.getPositionFromIndex(index)
+            val thisChar:Char = state.board.board[index]
+            val possibleEndIndices:MutableList<Int> = mutableListOf()
+
+            // before no mans land: move forward, attack forward
+            // after no mans land: move and attack UP, LEFT and RIGHT
+
+            val possibleActionVectors:List<Vector2D> = listOf(attackDirection, Vector2D.EAST, Vector2D.WEST)
+
+            for (dir in possibleActionVectors) {
+                val endPos: Vector2D = initialPos + dir
+                if(!Board.positionInsideBounds(endPos)) continue
+                // if endPos has an ally, not allowed to go there
+                val thatChar:Char = state.board.getPieceChar(endPos)
+                if(PieceType.isAlly(thisChar, thatChar)) continue
+                possibleEndIndices.add(Board.getIndexFromPosition(endPos))
+
+                // if we have NOT crossed half of the board. then ignore other moves
+                if (!Board.isPositionInNorth(initialPos)) break
+            }
+            return possibleEndIndices
         }
     }
 
