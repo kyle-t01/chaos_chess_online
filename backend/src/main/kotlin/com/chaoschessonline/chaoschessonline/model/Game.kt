@@ -4,7 +4,7 @@ import com.chaoschessonline.chaoschessonline.util.Vector2D
 
 class Game()
 {
-    var currentState:BoardState = BoardState.defaultBoardState()
+    private var currentState:BoardState = BoardState.defaultBoardState()
     private var southPlayer: Player? = null
     private var northPlayer: Player? = null
     private var isStarted:Boolean = false
@@ -30,6 +30,10 @@ class Game()
     fun setNorthPlayerAI(player: Player) {
         this.northPlayer = Player("NORTH AI", true, Vector2D.SOUTH)
     }
+
+    fun getCurrentState() = currentState
+
+    fun getDimension() = dimension
 
     // starting and stopping games
     fun start() {
