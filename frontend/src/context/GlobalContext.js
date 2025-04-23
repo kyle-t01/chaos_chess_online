@@ -13,7 +13,7 @@ export const GlobalContextProvider = ({ children }) => {
     const [lobby, setLobby] = useState([]);
     const [hasGameStarted, setHasGameStarted] = useState(false);
     const [gameState, setGameState] = useState(null);
-
+    const [validActions, setValidActions] = useState([])
     // move, moved, 
 
     const [timeLeft, setTimeLeft] = useState(0);
@@ -23,7 +23,6 @@ export const GlobalContextProvider = ({ children }) => {
     // connect to websocket automatically
     useEffect(() => {
         handlePlayerConnect()
-
     }, []);
 
 
@@ -114,6 +113,10 @@ export const GlobalContextProvider = ({ children }) => {
                 setHasGameStarted(false);
                 console.log("Game has ended!");
                 break;
+            case "SHOW_LEGAL_ACTIONS":
+                // set something
+                setValidActions(eventJSON.data)
+                break;
 
             case "KICK":
                 setHasGameStarted(false);
@@ -146,7 +149,8 @@ export const GlobalContextProvider = ({ children }) => {
                 handleStartGame,
                 handlePlayerConnect,
                 handlePlayerJoinNorth, handlePlayerJoinSouth,
-                gameState, setGameState
+                gameState, setGameState,
+                validActions, setValidActions,
             }}>
             {children}
         </GlobalContext.Provider>
