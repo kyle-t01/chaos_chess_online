@@ -102,19 +102,21 @@ class ValidActionGenerator {
             while (dist <= 2) {
                 // check some end positions
                 val endPos = initialPos + (attackDirection * dist)
-                if (!Board.positionInsideBounds(endPos)) continue
+                if (!Board.positionInsideBounds(endPos)) break;
                 val endIndex = Board.getIndexFromPosition(endPos)
 
                 // if end position is empty, then can move there
                 if (state.board.board[endIndex] == ' ') {
                     possibleEndIndices.add(endIndex)
+                } else {
+                    break;
                 }
                 dist += 1
             }
 
             // look at possible attacks
-            val endPosNW = Vector2D.NW * attackDirection.row
-            val endPosNE = Vector2D.NE * attackDirection.row
+            val endPosNW = initialPos + (Vector2D.NW * attackDirection.row)
+            val endPosNE = initialPos + (Vector2D.NE * attackDirection.row)
             val attackPositions: List<Vector2D> = listOf(endPosNE, endPosNW)
 
             for (pos in attackPositions) {
