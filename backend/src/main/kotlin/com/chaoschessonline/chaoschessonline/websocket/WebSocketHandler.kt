@@ -14,6 +14,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.handler.TextWebSocketHandler
+import java.util.*
 
 /**
  * Web socket handler
@@ -42,6 +43,7 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
         val player:Player? = lobby.findPlayerOfSession(session)
         lobby.removePlayer(session)
         game.removePlayer(player)
+        emitToAllGameStateUpdated()
         emitToAllUpdateConnected()
 
         // when the game has ended, cancel to gameLoopJob
@@ -66,7 +68,8 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
                 val lobbySize = lobby.getPlayers().size
                 val sentName = data.toString().trim()
                 val name = if (sentName == "") {
-                    "GUEST ${lobbySize+1}"
+                    // generate random guest names
+                    "GUEST_" + UUID.randomUUID().toString().take(4).uppercase()
                 } else {
                     sentName
                 }
@@ -82,15 +85,17 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
                 }
                 */
 
-                // signal to the player, of successful connect
+                // signal to the player, of successful connect and current game state
                 emit(session,Event(EventType.CONNECTED, game))
+                emit(session, Event(EventType.GAME_STATE_UPDATED, game))
+
                 
                 // update the lobby of all players
                 emitToAllUpdateConnected()
             }
             EventType.JOIN -> {
                 // inform everyone of current game state
-                emitToAll(Event(EventType.GAME_STATE_UPDATED, game))
+                emitToAllGameStateUpdated()
 
                 // get the attacking direction of this player
                 val dirString:String = data.toString()
@@ -116,7 +121,7 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
                 // tell player game was joined
                 emit(session,Event(EventType.JOINED, ""))
                 // tell lobby that game state has updated
-                emitToAll(Event(EventType.GAME_STATE_UPDATED, game))
+                emitToAllGameStateUpdated()
 
             }
             EventType.START -> {
@@ -210,6 +215,11 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
     // helper signal to tell everyone a player CONNECTED
     private fun emitToAllUpdateConnected() {
         emitToAll(Event(EventType.UPDATE_CONNECTED, lobby.getPlayers()))
+    }
+
+    // helper signal to tell everyone a player JOINED a game
+    private fun emitToAllGameStateUpdated() {
+        emitToAll(Event(EventType.GAME_STATE_UPDATED, game))
     }
 
 
