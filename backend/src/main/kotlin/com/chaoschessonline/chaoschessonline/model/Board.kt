@@ -78,6 +78,7 @@ data class Board(
         val DEFAULT_SIZE = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
 
         fun getIndexFromPosition(position: Vector2D): Int {
+            require(positionInsideBounds(position)) {"INCORRECT USAGE: position must be within board"}
             return position.col + position.row * DEFAULT_DIMENSION.col
         }
 
