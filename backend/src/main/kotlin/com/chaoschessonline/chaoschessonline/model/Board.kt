@@ -45,19 +45,16 @@ data class Board(
     }
 
     /**
-     * Is action outside turn
+     * Find attack direction of pos
      *
-     * @param action
-     * @param attackDirection
+     * assumes that pos is valid and within bounds
+     *
+     * @param pos
      * @return
      */
-    fun isActionOutsideTurn(action:Action, attackDirection:Vector2D): Boolean {
-        val from:Int = getIndexFromPosition(action.from)
-        return PieceType.isPieceOfAttacker(board[from], attackDirection)
+    fun findAttackDirectionOfPos(pos: Vector2D): Vector2D {
+        return PieceType.findAttackDirection(getPieceChar(pos))
     }
-
-
-    // board, access postitsion directly
 
     /**
      * Is enemy pos
