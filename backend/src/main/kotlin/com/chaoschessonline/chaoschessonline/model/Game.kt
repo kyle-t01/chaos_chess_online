@@ -42,6 +42,9 @@ class Game()
 
     fun end() {
         isStarted = false
+        currentState = BoardState.defaultBoardState()
+        southPlayer = null
+        northPlayer = null
     }
 
     fun isStarted() = isStarted
@@ -102,4 +105,27 @@ class Game()
         return
     }
 
+    /**
+     * Is player in game
+     *
+     * @param player
+     * @return
+     */
+    fun isPlayerInGame(player: Player):Boolean = (player == southPlayer || player == northPlayer)
+
+
+    /**
+     * Apply player action, updates game state
+     *
+     * @param player
+     * @param action
+     */
+    fun applyPlayerAction(player: Player?, action: Action) {
+        // if player not in game, ignore
+        if (player == null || !isPlayerInGame(player)) return
+        // if not the player's turn, ignore
+        if (player.attackDirection != currentState.attackingDirection) return
+        // apply action and update current board state
+        currentState = currentState.applyAction(action)
+    }
 }
