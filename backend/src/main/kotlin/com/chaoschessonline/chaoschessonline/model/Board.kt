@@ -27,6 +27,22 @@ data class Board(
         return board[getIndexFromPosition(position)]
     }
 
+    /**
+     * Apply action, assumes action is already valid
+     *
+     * @param action
+     * @return a new Board from applied action
+     */
+    fun applyAction(action: Action): Board {
+        val from:Int = getIndexFromPosition(action.from)
+        val to:Int = getIndexFromPosition(action.to)
+        // simply replace the dest/to piece with src/from piece
+        val newBoardArr = board.copyOf()
+        newBoardArr[to] = newBoardArr[from]
+        newBoardArr[from] = ' '
+        return Board(newBoardArr)
+    }
+
     companion object {
         fun defaultBoard():Board {
             val size = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
