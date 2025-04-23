@@ -80,5 +80,18 @@ enum class PieceType {
             return if (isNorthPlayer) Vector2D.SOUTH else Vector2D.NORTH
         }
 
+        /**
+         * Is piece of attacker, given piece and attackingDirection
+         *
+         * @param c
+         * @param attackDirection
+         * @return
+         */
+        fun isPieceOfAttacker(c:Char, attackDirection: Vector2D):Boolean {
+            val isNorthPlayer = c.isUpperCase()
+            val pieceAttackDirection = findAttackDirection(c)
+            return attackDirection == pieceAttackDirection
+        }
+
     }
 }
