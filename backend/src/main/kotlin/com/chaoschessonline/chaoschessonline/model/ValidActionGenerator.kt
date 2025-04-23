@@ -57,7 +57,7 @@ class ValidActionGenerator {
                 'C' -> {
                     possibleEndIndices = findCannonActions(index, state)
                 }
-
+                ' ' -> return listOf()
                 else -> {
                     println("ERROR: Unimplemented or Unknown pieceChar!!!")
                 }
@@ -91,9 +91,10 @@ class ValidActionGenerator {
          */
         fun findPawnActions(index: Int, state: BoardState): List<Int> {
             // unit vector for attack direction
-            val attackDirection = state.attackingDirection
+
             val initialPos = Board.getPositionFromIndex(index)
             val thisChar: Char = state.board.board[index]
+            val attackDirection = PieceType.findAttackDirection(thisChar)
             val possibleEndIndices: MutableList<Int> = mutableListOf()
 
             // look at possible movement
@@ -140,9 +141,10 @@ class ValidActionGenerator {
          */
         fun findFootSoldierActions(index: Int, state: BoardState): List<Int> {
             // unit vector for attack direction
-            val attackDirection = state.attackingDirection
+
             val initialPos = Board.getPositionFromIndex(index)
             val thisChar: Char = state.board.board[index]
+            val attackDirection = PieceType.findAttackDirection(thisChar)
             val possibleEndIndices: MutableList<Int> = mutableListOf()
 
             // before no mans land: move forward, attack forward
@@ -176,9 +178,10 @@ class ValidActionGenerator {
          */
         fun findSliderActions(index: Int, state: BoardState, directions: List<Vector2D>): List<Int> {
             // TODO: index, state, unitMovement, unitAttack, moveDist, attackDist, moveDirs, attackDirs, attackReqs
-            val attackDirection = state.attackingDirection
+
             val initialPos = Board.getPositionFromIndex(index)
             val thisChar: Char = state.board.board[index]
+            // val attackDirection = PieceType.findAttackDirection(thisChar)
             val possibleEndIndices: MutableList<Int> = mutableListOf()
 
 
