@@ -4,9 +4,9 @@ import "../chessboard.css"
 
 const ChessBoard = () => {
     // global state
-    const { gameState, sendEvent, validActions } = GlobalVars()
+    const { gameState, sendEvent, validActions, setValidActions } = GlobalVars()
     // move to global vars later so it can handle sending events
-    const [clickedPos, setClickedPos] = useState({})
+    const [clickedIdx, setClickedIdx] = useState(null)
 
     console.log(gameState)
     // variables derived from global gameState
@@ -69,10 +69,22 @@ const ChessBoard = () => {
 
     const handleSquareClicked = (col, row) => {
         console.log(`clicked (col=${col}, row=${row})`)
+
+        const idx = getIndex(col, row)
+        // if clicked on empty square, return 
+        if (board[idx] === ' ') return;
+        // if clicked the same square, hide valid moves
+        if (clickedIdx == idx) {
+            setClickedIdx(null)
+            setValidActions([])
+            return
+        }
+        // remember the square that was clicked
+        setClickedIdx(idx)
         // send game event that want to move this piece
         // first click = show me legal moves
-        sendEvent("LEGAL_ACTIONS", getIndex(col, row))
-        // second click = i want to move my piece there
+        sendEvent("LEGAL_ACTIONS", idx)
+        // second click (on a different square)= i want to move my piece there
     }
 
     const renderPiece = (c) => {
