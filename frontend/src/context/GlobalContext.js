@@ -102,8 +102,17 @@ export const GlobalContextProvider = ({ children }) => {
                 console.log("You joined the game!")
                 break;
             case "GAME_STATE_UPDATED":
+                setValidActions([])
                 setGameState(eventJSON.data)
                 console.log("the game state is:", eventJSON.data);
+                break;
+            case "MOVE_UPDATED":
+                setValidActions([])
+                console.log("Your move updated game state", eventJSON.data);
+                break;
+            case "MOVE_FAILED":
+                setValidActions([])
+                console.log("Your move was invalid", eventJSON.data);
                 break;
             case "START":
                 setHasGameStarted(true);
