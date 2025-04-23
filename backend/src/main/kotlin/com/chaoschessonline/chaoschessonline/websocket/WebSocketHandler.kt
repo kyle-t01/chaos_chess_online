@@ -183,7 +183,6 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
 
              */
             }
-
             EventType.MOVE -> {
                 // get move data
 
@@ -193,6 +192,13 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
 
                 // broadcast state change to everyone
 
+            }
+            EventType.LEGAL_ACTIONS -> {
+                val idx = data.toString().toInt()
+                val validActionIdx = ValidActionGenerator.findPossibleActionsForIndex(idx, game.getCurrentState())
+                val replyEventType = EventType.SHOW_LEGAL_ACTIONS
+                println("validList of actions are: $validActionIdx")
+                emit(session, Event(replyEventType, validActionIdx))
             }
             else -> {
                 println("Unexpected Usage of $type !")
