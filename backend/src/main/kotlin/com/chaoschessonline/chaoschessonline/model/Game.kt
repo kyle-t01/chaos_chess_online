@@ -86,9 +86,8 @@ class Game()
             // ignore case where removing non-existing player
             ;
         }
-        // if there are no more players, end the game
-        // start game when both players are there
-        if (southPlayer == null && northPlayer== null) {
+        // if not enough players, end the game
+        if (southPlayer == null || northPlayer== null) {
             end()
         }
         return
