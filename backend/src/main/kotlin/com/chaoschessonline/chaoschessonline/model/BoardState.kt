@@ -28,5 +28,20 @@ data class BoardState(
         fun northStartBoardState() = BoardState(null, Board.defaultBoard(), 0, Vector2D.SOUTH)
     }
 
+    /**
+     * Apply action, and get a new boardstate
+     *
+     * @param action
+     * @return new BoardState
+     */
+    fun applyAction(action: Action): BoardState {
+        // assuming valid action
+        val newBoard: Board = board.applyAction(action)
+        // make new State from applying action
+        val newAttackDir = attackingDirection.reflectRow()
+        val newTurnNum = turnNumber + 1
+        val parent = this
+        return BoardState(parent, newBoard, newTurnNum, newAttackDir)
+    }
 
 }
