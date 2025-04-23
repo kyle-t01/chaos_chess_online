@@ -35,6 +35,10 @@ data class BoardState(
      * @return new BoardState
      */
     fun applyAction(action: Action): BoardState {
+        // assumes that we are moving piece within turn
+        // TODO: remove require
+        require(!isActionOutsideTurn(action)) {"Error: moving a piece not on its turn"}
+
         // assuming valid action
         val newBoard: Board = board.applyAction(action)
         // make new State from applying action
@@ -42,6 +46,19 @@ data class BoardState(
         val newTurnNum = turnNumber + 1
         val parent = this
         return BoardState(parent, newBoard, newTurnNum, newAttackDir)
+    }
+
+    /**
+     * Is action outside turn (moving a piece not on its turn)
+     *
+     *  are we attempting to move pieces that aren't allowed to move yet?
+     *
+     * @param action
+     * @return boolean
+     */
+    fun isActionOutsideTurn(action: Action): Boolean {
+        // are we attempting to move pieces that aren't allowed to move yet
+        return board.findAttackDirectionOfPos(action.from) != attackingDirection
     }
 
 }
