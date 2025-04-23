@@ -66,5 +66,19 @@ enum class PieceType {
             return us.isUpperCase() != them.isUpperCase()
         }
 
+        /**
+         * Find attack direction of a char
+         *
+         * assume that passed in an non-empty char
+         *
+         * @param c
+         * @return
+         */
+        fun findAttackDirection(c:Char):Vector2D {
+            require(c != ' ') {"Can't find an attack direction of empty char!!!"}
+            val isNorthPlayer:Boolean = c.isUpperCase()
+            return if (isNorthPlayer) Vector2D.SOUTH else Vector2D.NORTH
+        }
+
     }
 }
