@@ -115,17 +115,25 @@ class Game()
 
 
     /**
-     * Apply player action, updates game state
+     * Apply player action
      *
      * @param player
      * @param action
+     * @return whether action was applied
      */
-    fun applyPlayerAction(player: Player?, action: Action) {
+    fun applyPlayerAction(player: Player?, action: Action): Boolean {
         // if player not in game, ignore
-        if (player == null || !isPlayerInGame(player)) return
+        if (player == null || !isPlayerInGame(player)) return false
         // if not the player's turn, ignore
-        if (player.attackDirection != currentState.attackingDirection) return
+        if (player.attackDirection != currentState.attackingDirection) return false
+
+        // if position piece can't move on this turn, ignore
+        if (currentState.isActionOutsideTurn(action)) return false
+
         // apply action and update current board state
         currentState = currentState.applyAction(action)
+        return true
     }
+
+
 }
