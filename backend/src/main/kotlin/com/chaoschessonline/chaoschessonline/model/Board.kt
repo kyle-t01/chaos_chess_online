@@ -3,19 +3,20 @@ package com.chaoschessonline.chaoschessonline.model
 import com.chaoschessonline.chaoschessonline.util.Vector2D
 import kotlin.reflect.jvm.internal.impl.incremental.components.Position
 
+
 /**
  * Board
  *
- * More accurately, *not* a physical Board, but just a list of Pieces
- *
- * @property southPiecesList
- * @property northPiecesList
+ * @property board
  * @constructor Create empty Board
  */
 data class Board(
     val board: Array<Char> = arrayOf()
 )
 {
+
+
+
     /**
      * Get piece char (assume position is not out of bounds)
      *
@@ -41,6 +42,88 @@ data class Board(
         newBoardArr[to] = newBoardArr[from]
         newBoardArr[from] = ' '
         return Board(newBoardArr)
+    }
+
+    /**
+     * Is action outside turn
+     *
+     * @param action
+     * @param attackDirection
+     * @return
+     */
+    fun isActionOutsideTurn(action:Action, attackDirection:Vector2D): Boolean {
+        val from:Int = getIndexFromPosition(action.from)
+        return PieceType.isPieceOfAttacker(board[from], attackDirection)
+    }
+
+
+    // board, access postitsion directly
+
+    /**
+     * Is enemy pos
+     *
+     * @param src: Vector2D
+     * @param dest: Vector2D
+     * @return
+     */
+    fun isEnemyPos(src:Vector2D, dest:Vector2D):Boolean {
+        require(positionInsideBounds(src) && positionInsideBounds(dest)) {"ERROR: src or dest must be within bounds"}
+        return isEnemyPos(Board.getIndexFromPosition(src), Board.getIndexFromPosition(dest))
+    }
+
+    /**
+     * Is enemy pos
+     *
+     * @param src
+     * @param dest
+     * @return
+     */
+    fun isEnemyPos(src:Int, dest:Int): Boolean {
+        return PieceType.isEnemy(board[src], board[dest])
+    }
+
+    /**
+     * Is ally pos
+     *
+     * @param src
+     * @param dest
+     * @return
+     */
+    fun isAllyPos(src: Vector2D, dest:Vector2D):Boolean {
+        require(positionInsideBounds(src) && positionInsideBounds(dest)) {"ERROR: src or dest must be within bounds"}
+        return isAllyPos(Board.getIndexFromPosition(src), Board.getIndexFromPosition(dest))
+    }
+
+    /**
+     * Is ally pos
+     *
+     * @param src
+     * @param dest
+     * @return
+     */
+    fun isAllyPos(src: Int, dest:Int):Boolean {
+        return PieceType.isAlly(board[src], board[dest])
+    }
+
+    /**
+     * Is empty pos
+     *
+     * @param dest
+     * @return
+     */
+    fun isEmptyPos(dest:Vector2D):Boolean {
+        require(positionInsideBounds(dest))
+        return isEmptyPos(Board.getIndexFromPosition(dest))
+    }
+
+    /**
+     * Is empty pos
+     *
+     * @param dest
+     * @return
+     */
+    fun isEmptyPos(dest:Int):Boolean {
+        return board[dest] == ' '
     }
 
     companion object {
