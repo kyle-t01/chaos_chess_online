@@ -77,8 +77,9 @@ const ChessBoard = () => {
         console.log(`clicked (col=${col}, row=${row})`)
 
         const idx = getIndex(col, row)
+        const piece = board[idx]
         // if clicked on empty square when previous square was empty, return 
-        if (board[idx] === ' ' && clickedIdx == null) return;
+        if (piece === ' ' && clickedIdx == null) return;
         // if clicked the same square, hide valid moves
         if (clickedIdx == idx) {
             setClickedIdx(null)
@@ -93,6 +94,8 @@ const ChessBoard = () => {
             const to = getVector2DfromIndex(idx)
             const data = `${from.col},${from.row} ${to.col},${to.row}`
             sendEvent("MOVE", data)
+            setClickedIdx(null);
+            setValidActions([])
             return
         }
 
