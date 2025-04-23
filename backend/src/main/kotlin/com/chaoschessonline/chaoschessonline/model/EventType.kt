@@ -12,6 +12,8 @@ enum class EventType {
     ENDED, // tell player game ended
     CHAT, // player sent a chat
     CHATTED, // tell player someone chatted
+    LEGAL_ACTIONS, // player asking what moves are legal for a piece
+    SHOW_LEGAL_ACTIONS, // tell player where a piece can move
     MOVE, // player attempting to make a move
     MOVE_FAILED, // player move could not be applied
     MOVE_UPDATED, // tell player that move updated (the game state)
