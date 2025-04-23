@@ -27,6 +27,7 @@ class ValidActionGenerator {
                 'Z' -> {possibleEndIndices = findFootSoldierActions(index, state)}
                 'M' -> {possibleEndIndices = findHorseActions(index, state)}
                 'S' -> {possibleEndIndices = findScholarActions(index,state)}
+                'G' -> {possibleEndIndices = findGeneralActions(index,state)}
                 else -> {println("ERROR: Unimplemented or Unknown pieceChar!!!")}
                 //'B' -> {possibleEndIndices = findPawnActions(index, state)}
                 //'N' -> findKnightActions()
@@ -302,7 +303,7 @@ class ValidActionGenerator {
          * @return
          */
         fun findScholarActions(index: Int, state: BoardState):List<Int> {
-            // Schloars can move in any direction, but must be within a 2 X 2 region
+            // Scholars can move in any direction, but must be within a 2 X 2 region
             // hardcode the region for now
             // assumptions: always 2x2 region, Vector(3,0) is starting position
             val assumedStart = Vector2D(3,0)
@@ -326,6 +327,17 @@ class ValidActionGenerator {
             return possibleEndIndices
         }
 
+        /**
+         * Find General actions
+         *
+         * Hardcoded implementation, assumes a 6x6 board, and starts within specified 2x2 allowed positions
+         * uses same code as Scholar
+         *
+         * @param index
+         * @param state
+         * @return
+         */
+        fun findGeneralActions(index: Int, state: BoardState):List<Int> = findScholarActions(index, state)
 
     }
 
