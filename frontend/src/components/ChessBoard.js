@@ -71,20 +71,30 @@ const ChessBoard = () => {
         console.log(`clicked (col=${col}, row=${row})`)
 
         const idx = getIndex(col, row)
-        // if clicked on empty square, return 
-        if (board[idx] === ' ') return;
+        // if clicked on empty square when previous square was empty, return 
+        if (board[idx] === ' ' && clickedIdx == null) return;
         // if clicked the same square, hide valid moves
         if (clickedIdx == idx) {
             setClickedIdx(null)
             setValidActions([])
             return
         }
-        // remember the square that was clicked
+
+
+        // now we have defs picked a new square, we are moving this piece if within valid actions
+        if (validActions.includes(idx)) {
+            // second click on diff square, move there
+            sendEvent("MOVE", idx)
+        }
+
+
+
+        // first click, show me legal actions
+
+
         setClickedIdx(idx)
-        // send game event that want to move this piece
-        // first click = show me legal moves
         sendEvent("LEGAL_ACTIONS", idx)
-        // second click (on a different square)= i want to move my piece there
+
     }
 
     const renderPiece = (c) => {
