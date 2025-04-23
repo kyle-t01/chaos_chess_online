@@ -67,6 +67,10 @@ class Game()
             println("error: unknown attack direction or team already full!")
             return false
         }
+        // start game when both players are there
+        if (southPlayer != null && northPlayer!= null) {
+            start()
+        }
         return true
     }
 
@@ -80,7 +84,12 @@ class Game()
             println("Game: removing north player")
         } else {
             // ignore case where removing non-existing player
-            return
+            ;
+        }
+        // if there are no more players, end the game
+        // start game when both players are there
+        if (southPlayer == null && northPlayer== null) {
+            end()
         }
         return
     }
