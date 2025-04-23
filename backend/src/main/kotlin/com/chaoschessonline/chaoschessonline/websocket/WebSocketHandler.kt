@@ -191,12 +191,12 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
 
                 // apply action to current gamestate
                 val player = lobby.findPlayerOfSession(session)
-                game.applyPlayerAction(player, action)
-
+                val moved = game.applyPlayerAction(player, action)
+                val moveEventType = if (moved) EventType.MOVE_UPDATED else EventType.MOVE_FAILED
                 // tell player whether they have moved
-                emit(session,Event(EventType.MOVE_UPDATED, game))
+                emit(session,Event(moveEventType, game))
                 // broadcast state change to everyone
-                emitToAllGameStateUpdated()
+                if (moved) emitToAllGameStateUpdated();
             }
             EventType.LEGAL_ACTIONS -> {
                 val idx = data.toString().toInt()
