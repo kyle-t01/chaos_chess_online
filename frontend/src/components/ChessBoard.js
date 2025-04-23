@@ -41,10 +41,14 @@ const ChessBoard = () => {
         const idx = col + row * numCols
         const piece = board[idx]
         return (
-            <div className="square" key={idx}>
+            <div className="square" key={idx} onClick={() => handleSquareClicked(col, row)}>
                 {renderPiece(piece)}
             </div>
         );
+    }
+
+    const handleSquareClicked = (col, row) => {
+        console.log(`clicked (col=${col}, row=${row})`)
     }
 
     const renderPiece = (c) => {
