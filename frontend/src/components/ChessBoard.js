@@ -1,9 +1,13 @@
 import { GlobalVars } from "../context/GlobalContext";
+import { useState } from "react";
 import "../chessboard.css"
 
 const ChessBoard = () => {
     // global state
-    const { gameState } = GlobalVars()
+    const { gameState, sendEvent, validActions } = GlobalVars()
+    // move to global vars later so it can handle sending events
+    const [clickedPos, setClickedPos] = useState({})
+
     console.log(gameState)
     // variables derived from global gameState
     const numRows = gameState?.dimension.row ?? 6
@@ -35,20 +39,40 @@ const ChessBoard = () => {
 
     }
 
+    const getIndex = (col, row) => {
+        return col + row * numCols
+    }
 
     const renderSquare = (col, row) => {
         // assume that idx always within bounds of board
         const idx = col + row * numCols
         const piece = board[idx]
+        if (validActions.includes(idx)) {
+            return (
+                <div className="square" key={idx} onClick={() => handleSquareClicked(col, row)}>
+                    <span>
+                        {renderPiece(piece)} x
+                    </span>
+
+                </div>
+            );
+        }
         return (
             <div className="square" key={idx} onClick={() => handleSquareClicked(col, row)}>
-                {renderPiece(piece)}
+                <span>
+                    {renderPiece(piece)}
+                </span>
+
             </div>
         );
     }
 
     const handleSquareClicked = (col, row) => {
         console.log(`clicked (col=${col}, row=${row})`)
+        // send game event that want to move this piece
+        // first click = show me legal moves
+        sendEvent("LEGAL_ACTIONS", getIndex(col, row))
+        // second click = i want to move my piece there
     }
 
     const renderPiece = (c) => {
@@ -68,6 +92,7 @@ const ChessBoard = () => {
             fontWeight: 'bold',
             backgroundColor: 'white'
         }
+
 
         switch (c.toUpperCase()) {
             case 'P': return <span style={style}>♟</span>
