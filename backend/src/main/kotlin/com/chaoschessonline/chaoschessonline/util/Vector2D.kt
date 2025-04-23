@@ -109,6 +109,21 @@ data class Vector2D(val col: Int, val row: Int)
             }
         }
 
+        /**
+         * Create a Vector2D from str
+         *
+         * assumes that s is in the form: "Int,Int"
+         *
+         * @param s
+         * @return
+         */
+        fun fromStr(s:String):Vector2D {
+            val posStrList = s.split(",")
+            require(posStrList.size == 2)
+            val colPos = posStrList[0].toInt()
+            val rowPos = posStrList[1].toInt()
+            return Vector2D(colPos, rowPos)
+        }
     }
 }
 
