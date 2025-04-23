@@ -26,6 +26,7 @@ class ValidActionGenerator {
                 // xiangqi pieces
                 'Z' -> {possibleEndIndices = findFootSoldierActions(index, state)}
                 'M' -> {possibleEndIndices = findHorseActions(index, state)}
+                'S' -> {possibleEndIndices = findScholarActions(index,state)}
                 else -> {println("ERROR: Unimplemented or Unknown pieceChar!!!")}
                 //'B' -> {possibleEndIndices = findPawnActions(index, state)}
                 //'N' -> findKnightActions()
@@ -290,6 +291,42 @@ class ValidActionGenerator {
 
             return possibleEndIndices
         }
+
+        /**
+         * Find scholar actions
+         *
+         * Hardcoded implementation, assumes a 6x6 board, and starts at Vector(3,0)
+         *
+         * @param index
+         * @param state
+         * @return
+         */
+        fun findScholarActions(index: Int, state: BoardState):List<Int> {
+            // Schloars can move in any direction, but must be within a 2 X 2 region
+            // hardcode the region for now
+            // assumptions: always 2x2 region, Vector(3,0) is starting position
+            val assumedStart = Vector2D(3,0)
+            val north = assumedStart + Vector2D.NORTH
+            val west = assumedStart + Vector2D.WEST
+            val nw = assumedStart + Vector2D.NW
+            val possibleEndIndices:MutableList<Int> = mutableListOf()
+            val thisChar = state.board.board[index]
+
+            val allowedPositions:List<Vector2D> = listOf(assumedStart, north, west, nw)
+            for (p in allowedPositions) {
+                // if this position has an ally, not allowed to move here
+                val thatChar:Char = state.board.getPieceChar(p)
+
+                if (PieceType.isAlly(thisChar, thatChar)) {
+                    continue
+                }
+                // legal action
+                possibleEndIndices.add(Board.getIndexFromPosition(p))
+            }
+            return possibleEndIndices
+        }
+
+
     }
 
 
