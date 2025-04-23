@@ -49,8 +49,8 @@ data class Board(
         val XIANGQI_PIECES_BOTTOM_HALF: Map<Vector2D, PieceType> = mapOf(
             Vector2D(1,0) to PieceType.HORSE,
             Vector2D(4,0) to PieceType.HORSE,
-            Vector2D(2,0) to PieceType.SCHOLAR,
-            Vector2D(3,0) to PieceType.GENERAL,
+            Vector2D(3,0) to PieceType.SCHOLAR,
+            Vector2D(2,0) to PieceType.GENERAL,
             Vector2D(1,1) to PieceType.CANNON,
             Vector2D(4,1) to PieceType.CANNON,
             Vector2D(0,2) to PieceType.FOOT_SOLDIER,
