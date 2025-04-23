@@ -139,6 +139,7 @@ class ValidActionGenerator {
          * @return
          */
         fun findSliderActions(index: Int, state:BoardState, directions:List<Vector2D>): List<Int> {
+            // TODO: index, state, unitMovement, unitAttack, moveDist, attackDist, moveDirs, attackDirs, attackReqs
             val attackDirection = state.attackingDirection
             val initialPos = Board.getPositionFromIndex(index)
             val thisChar:Char = state.board.board[index]
@@ -233,6 +234,56 @@ class ValidActionGenerator {
                         continue
                     }
                     possibleEndIndices.add(Board.getIndexFromPosition(endPos))
+
+                }
+            }
+
+            return possibleEndIndices
+        }
+
+        /**
+         * Find horse actions
+         *
+         * // Technically, could fit under modified findSliderActions() but use this function for now
+         * // Lots of reusable code, refactor later after verifying it works
+         *
+         * @param index
+         * @param state
+         * @return
+         */
+        fun findHorseActions(index: Int, state: BoardState):List<Int> {
+            val checkDirs:List<Vector2D> = Vector2D.STRAIGHTS
+            val initialPos = Board.getPositionFromIndex(index)
+            val thisChar:Char = state.board.board[index]
+            val possibleEndIndices:MutableList<Int> = mutableListOf()
+
+            for (dir in checkDirs) {
+                // look at each end position
+                val endPos = initialPos + dir
+
+                if (Board.positionInsideBounds(endPos)) {
+
+                    // if not an empty space, this direction is blocked
+                    val aheadChar:Char = state.board.getPieceChar(endPos)
+                    if(aheadChar != ' ') {
+                        continue
+                    }
+                    // this direction is not blocked, so look at diagonals
+                    // horse jump vectors
+                    val jumpVectors:List<Vector2D> = Vector2D.getDirectionDiagonals(dir)
+                    for (v in jumpVectors) {
+                        val finalJumpPosition = endPos+v
+
+                        if (Board.positionInsideBounds(finalJumpPosition)) {
+                            val thatChar:Char = state.board.getPieceChar(finalJumpPosition)
+                            if (PieceType.isAlly(thisChar, thatChar)) {
+                                continue
+                            }
+                            // we can do an "L" shaped jump
+                            possibleEndIndices.add(Board.getIndexFromPosition(finalJumpPosition))
+                        }
+                    }
+
 
                 }
             }
