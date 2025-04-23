@@ -43,6 +43,12 @@ const ChessBoard = () => {
         return col + row * numCols
     }
 
+    const getVector2DfromIndex = (idx) => {
+        const col = idx % numCols;
+        const row = Math.floor(idx / numCols);
+        return { col, row };
+    };
+
     const renderSquare = (col, row) => {
         // assume that idx always within bounds of board
         const idx = col + row * numCols
@@ -80,11 +86,14 @@ const ChessBoard = () => {
             return
         }
 
-
         // now we have defs picked a new square, we are moving this piece if within valid actions
         if (validActions.includes(idx)) {
             // second click on diff square, move there
-            sendEvent("MOVE", idx)
+            const from = getVector2DfromIndex(clickedIdx)
+            const to = getVector2DfromIndex(idx)
+            const data = `${from.col},${from.row} ${to.col},${to.row}`
+            sendEvent("MOVE", data)
+            return
         }
 
 
@@ -95,6 +104,10 @@ const ChessBoard = () => {
         setClickedIdx(idx)
         sendEvent("LEGAL_ACTIONS", idx)
 
+    }
+
+    const toVector2D = (col, row) => {
+        return { col: col, row: row }
     }
 
     const renderPiece = (c) => {
