@@ -88,6 +88,27 @@ data class Vector2D(val col: Int, val row: Int)
         val DIAGONALS = listOf(NE, NW, SE, SW)
         val OMNI_DIRS = STRAIGHTS + DIAGONALS
 
+        val NORTH_DIAGONALS = listOf(NE, NW)
+        val SOUTH_DIAGONALS = listOf(SE, SW)
+        val EAST_DIAGONALS = listOf(NE, SE)
+        val WEST_DIAGONALS = listOf(NW, SW)
+
+        /**
+         * Get direction diagonals (ie NORTH -> NE and NW)
+         *
+         * @param unitDirection
+         * @return
+         */
+        fun getDirectionDiagonals(unitDirection: Vector2D): List<Vector2D> {
+            return when (unitDirection) {
+                NORTH -> NORTH_DIAGONALS
+                SOUTH -> SOUTH_DIAGONALS
+                EAST -> EAST_DIAGONALS
+                WEST -> WEST_DIAGONALS
+                else -> listOf(Vector2D(0,0))
+            }
+        }
+
     }
 }
 
