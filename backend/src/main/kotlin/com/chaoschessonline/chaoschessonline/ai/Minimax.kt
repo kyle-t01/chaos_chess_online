@@ -50,5 +50,30 @@ class Minimax {
 
             return newState
         }
+
+        fun makeGreedyAction(state: BoardState): BoardState {
+            // (1) find all possible actions
+            val pieces = state.findCurrentAttackingPieces()
+            val actions = ValidActionGenerator.findActionsOfList(pieces, state)
+            // (2) get a list of next possible states
+            val nextStates:MutableList<BoardState> = mutableListOf()
+            for (a in actions) {
+                // apply each action to get a board state
+                val next = state.applyAction(a)
+                nextStates.add(next)
+            }
+            // (3) evaluation of states, and find best state
+            println("### makeGreedyAction() ###")
+
+            for (s in nextStates) {
+                println("${s.board}")
+            }
+
+
+
+            println("### -end- ###")
+            // (4) return that best state
+            return state
+        }
     }
 }
