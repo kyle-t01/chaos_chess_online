@@ -1,6 +1,7 @@
 package com.chaoschessonline.chaoschessonline.model
 
 import com.chaoschessonline.chaoschessonline.util.Vector2D
+import java.awt.Dimension
 
 /**
  * Action
@@ -34,6 +35,22 @@ data class Action(
             val newFrom = vList[0]
             val newTo = vList[1]
             return Action(newFrom, newTo)
+        }
+
+        /**
+         * From indices
+         *
+         * Supply from, to, and board dimensions
+         *
+         * @param from
+         * @param to
+         * @param dimension
+         * @return an Action
+         */
+        fun fromIndices(from:Int, to:Int, dimension: Vector2D): Action {
+            val src: Vector2D = Vector2D.fromIndex(from, dimension)
+            val dest: Vector2D = Vector2D.fromIndex(to, dimension)
+            return Action(src, dest)
         }
     }
 }
