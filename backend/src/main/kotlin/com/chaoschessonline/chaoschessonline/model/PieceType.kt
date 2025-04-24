@@ -93,5 +93,27 @@ enum class PieceType {
             return attackDirection == pieceAttackDirection
         }
 
+        /**
+         * Is leader piece of attacker
+         *
+         * Leader if piece is King (k) or General (g)
+         *
+         * @param c
+         * @param attackDirection
+         * @return
+         */
+        fun isLeaderPieceOfAttacker(c:Char, attackDirection: Vector2D): Boolean {
+            require(c != ' ' &&  (attackDirection == Vector2D.NORTH || attackDirection == Vector2D.SOUTH))
+            // is c a leader?
+            when (c) {
+                'k' -> {;}
+                'K' -> {;}
+                'G' -> {;}
+                'g' -> {;}
+                else -> return false
+            }
+            if (!isPieceOfAttacker(c, attackDirection)) return false
+            return true
+        }
     }
 }
