@@ -88,7 +88,7 @@ enum class PieceType {
          * @return
          */
         fun isPieceOfAttacker(c:Char, attackDirection: Vector2D):Boolean {
-            val isNorthPlayer = c.isUpperCase()
+            if (c == ' ') return false;
             val pieceAttackDirection = findAttackDirection(c)
             return attackDirection == pieceAttackDirection
         }
