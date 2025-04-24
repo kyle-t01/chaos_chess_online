@@ -207,8 +207,11 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
             }
             EventType.TEST -> {
                 println("GOT TEST EVENT")
-                game.makeRandomMove()
-                emitToAllGameStateUpdated();
+                if (game.makeRandomMove()) {
+                    println("game was able to make random move")
+                    emitToAllGameStateUpdated();
+                }
+
             }
             else -> {
                 println("Unexpected Usage of $type !")
