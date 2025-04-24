@@ -49,6 +49,21 @@ data class BoardState(
     }
 
     /**
+     * Apply action using Int positions
+     *
+     * @param from
+     * @param to
+     * @return
+     */
+    fun applyAction(from : Int, to: Int): BoardState {
+        // assuming valid action
+        val posFrom = Board.getPositionFromIndex(from)
+        val posTo = Board.getPositionFromIndex(to)
+        val action = Action(posFrom, posTo)
+        return applyAction(action)
+    }
+
+    /**
      * Is action outside turn (moving a piece not on its turn)
      *
      *  are we attempting to move pieces that aren't allowed to move yet?
