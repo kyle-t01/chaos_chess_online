@@ -61,8 +61,8 @@ data class Board(
         val newBoardArr = board.copyOf()
         newBoardArr[to] = newBoardArr[from]
         newBoardArr[from] = ' '
-        println("(1) Moving [${from}] ${board[from]} TOWARDS [${to}] ${board[to]}..." )
-        println("(2) Result [${from}] ${newBoardArr[from]} :  [${to}] ${newBoardArr[to]}")
+        //println("(1) Moving [${from}] ${board[from]} TOWARDS [${to}] ${board[to]}..." )
+        //println("(2) Result [${from}] ${newBoardArr[from]} :  [${to}] ${newBoardArr[to]}")
         return Board(newBoardArr)
     }
 
@@ -234,7 +234,7 @@ data class Board(
         val DEFAULT_SIZE = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
 
         fun getIndexFromPosition(position: Vector2D): Int {
-            require(positionInsideBounds(position)) {"INCORRECT USAGE: position must be within board"}
+            //require(positionInsideBounds(position)) {"INCORRECT USAGE: position must be within board"}
             return position.col + position.row * DEFAULT_DIMENSION.col
         }
 

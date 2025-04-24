@@ -48,7 +48,7 @@ enum class PieceType {
          * @return
          */
         fun isAlly(us: Char, them: Char):Boolean {
-            require(us != ' ') {"us char must not be empty!"}
+            //require(us != ' ') {"us char must not be empty!"}
             if (them == ' ') return false
             return us.isUpperCase() == them.isUpperCase()
         }
@@ -61,7 +61,7 @@ enum class PieceType {
          * @return
          */
         fun isEnemy(us: Char, them: Char):Boolean {
-            require(us != ' '){"us char must not be empty!"}
+            //require(us != ' '){"us char must not be empty!"}
             if (them == ' ') return false
             return us.isUpperCase() != them.isUpperCase()
         }
@@ -75,7 +75,7 @@ enum class PieceType {
          * @return
          */
         fun findAttackDirection(c:Char):Vector2D {
-            require(c != ' ') {"Can't find an attack direction of empty char!!!"}
+            //require(c != ' ') {"Can't find an attack direction of empty char!!!"}
             val isNorthPlayer:Boolean = c.isUpperCase()
             return if (isNorthPlayer) Vector2D.SOUTH else Vector2D.NORTH
         }
@@ -88,7 +88,7 @@ enum class PieceType {
          * @return
          */
         fun isPieceOfAttacker(c:Char, attackDirection: Vector2D):Boolean {
-            if (c == ' ') return false;
+            //if (c == ' ') return false;
             val pieceAttackDirection = findAttackDirection(c)
             return attackDirection == pieceAttackDirection
         }
@@ -103,7 +103,7 @@ enum class PieceType {
          * @return
          */
         fun isLeaderPieceOfAttacker(c:Char, attackDirection: Vector2D): Boolean {
-            require(c != ' ' &&  (attackDirection == Vector2D.NORTH || attackDirection == Vector2D.SOUTH))
+            //require(c != ' ' &&  (attackDirection == Vector2D.NORTH || attackDirection == Vector2D.SOUTH))
             // is c a leader?
             if (!isLeaderPiece(c)) return false
             // is c a leader of that player?

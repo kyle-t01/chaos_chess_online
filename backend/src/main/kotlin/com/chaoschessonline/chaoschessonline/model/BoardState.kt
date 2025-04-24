@@ -82,11 +82,12 @@ data class BoardState(
      * @return boolean
      */
     fun isActionOutsideTurn(action: Action): Boolean {
-        println("###isActionOutsideTurn###")
-        println(board)
-        println(attackingDirection)
-        println(action)
-        println("######")
+
+        //println("###isActionOutsideTurn###")
+        //println(board)
+        //println(attackingDirection)
+        //println(action)
+        //println("######")
 
         return board.findAttackDirectionOfPos(action.from) != attackingDirection
     }
