@@ -1,5 +1,6 @@
 package com.chaoschessonline.chaoschessonline.model
 
+import com.chaoschessonline.chaoschessonline.ai.Minimax
 import com.chaoschessonline.chaoschessonline.util.Vector2D
 
 class Game()
@@ -37,10 +38,12 @@ class Game()
 
     // starting and stopping games
     fun start() {
+        println("GAME HAS STARTED")
         isStarted = true
     }
 
     fun end() {
+        println("GAME HAS ENDED")
         isStarted = false
         currentState = BoardState.defaultBoardState()
         southPlayer = null
@@ -132,6 +135,17 @@ class Game()
 
         // apply action and update current board state
         currentState = currentState.applyAction(action)
+        return true
+    }
+
+    fun makeRandomMove(): Boolean {
+        val newState = Minimax.makeRandomAction(currentState)
+        if (currentState == newState) {
+            println("COULD NOT MAKE A RANDOM MOVE for ${currentState.attackingDirection}")
+            return false
+        }
+        // set the new state
+        currentState = newState
         return true
     }
 
