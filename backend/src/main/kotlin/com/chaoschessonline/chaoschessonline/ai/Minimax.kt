@@ -17,12 +17,14 @@ class Minimax {
         fun makeRandomAction(state:BoardState): BoardState {
             // make a random action, depending on current boardstate
             val ownPieces = state.findCurrentAttackingPieces()
+            if (ownPieces.size == 0) return state;
 
             // first select a random piece within this list
             val src:Int = Random.nextInt(0, ownPieces.size)
 
             // generate valid destination for this piece
             val destList= ValidActionGenerator.findPossibleActionsForIndex(src, state)
+            if (destList.size == 0) return state;
 
             // choose one random destination
             val dest = Random.nextInt(0, destList.size)
