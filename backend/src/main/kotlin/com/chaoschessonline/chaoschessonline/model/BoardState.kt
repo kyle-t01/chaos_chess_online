@@ -22,6 +22,7 @@ data class BoardState(
 {
     var children: List<BoardState> = emptyList()
     var eval:Int = 0
+    private val attackingPieces:MutableList<Int> = mutableListOf()
 
     companion object {
         fun defaultBoardState() = BoardState(null, Board.defaultBoard(), 0, Vector2D.NORTH)
@@ -48,7 +49,13 @@ data class BoardState(
         val newAttackDir = attackingDirection.reflectRow()
         val newTurnNum = turnNumber + 1
         val parent = this
-        return BoardState(parent, newBoard, newTurnNum, newAttackDir)
+
+        // setup the newState
+        val newState = BoardState(parent, newBoard, newTurnNum, newAttackDir)
+        // TODO: newState.attackingPieces = add findCurrentAttackingPieces()
+
+
+        return newState
     }
 
     /**
@@ -100,5 +107,47 @@ data class BoardState(
      * @return
      */
     fun findCurrentAttackingPieces() :List<Int> = findAttackingPieces(attackingDirection)
+
+    /**
+     * Is terminal state for player
+     *
+     * terminal state when: no pieces left, no leader left, no valid moves
+     *
+     * @param atkDir
+     * @return
+     */
+    fun isTerminalStateForPlayer(atkDir: Vector2D): Boolean {
+        // terminal state when
+        // (0) leader is captured (no leader pieces left)
+        // (1) no pieces left
+        // (2) no valid moves
+        // (3)
+        // TODO: when move into new State, generate attacking pieces and defending pieces to speed up calculations
+        val pieces:List<Int> = findAttackingPieces(atkDir)
+        // no pieces left
+        if (pieces.size == 0) return true
+        // no leader pieces left
+        if (board.isLeaderInPositions(pieces) == false) return true
+        // no valid moves
+        // for each attacking piece, no legal move
+        val validActions = ValidActionGenerator.findActionsOfList(pieces, this)
+        if (validActions.size == 0) return true
+
+        return false
+
+        // future implementations
+        // (1) moved x amount of turns without a capture
+        // (2) 3-fold repetition
+        // (3) this is xth turn, turn limit reached
+    }
+
+    /**
+     * Is terminal state (when either player is in a terminal state)
+     *
+     * @return
+     */
+    fun isTerminalState(): Boolean {
+        return isTerminalStateForPlayer(attackingDirection) || isTerminalStateForPlayer(attackingDirection.reflectRow())
+    }
 
 }
