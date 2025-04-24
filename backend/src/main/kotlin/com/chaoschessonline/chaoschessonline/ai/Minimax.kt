@@ -64,14 +64,38 @@ class Minimax {
             }
             // (3) evaluation of states, and find best state
             println("### makeGreedyAction() ###")
-
+            // eval from perspective of max or min player
+            val playerDir:Int = state.attackingDirection.row
+            // -1 means attack downwards, north player is min player
+            val maxPlayer: Boolean = (playerDir != -1)
+            val worstEvalOfThisPlayer = if (maxPlayer) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
+            var evalWanted = worstEvalOfThisPlayer
             for (s in nextStates) {
-                println("${s.board}")
+                val eval = StateEvaluator.evaluate(s)
+                // TODO: should set evaluation within the boardstate object
+                s.eval = eval
+                println("${s.board} has eval of $eval")
+                if (maxPlayer && (eval > evalWanted)) {
+                    evalWanted = eval
+
+                    continue;
+                }
+                if (!maxPlayer && (eval < evalWanted)) {
+                    evalWanted = eval
+                    continue;
+                }
             }
 
+            println("The evalWanted is $evalWanted")
+            // now do a linear search
+            for (s in nextStates) {
+                if (s.eval == evalWanted) {
+                    println("### -end- ###")
+                    return s
+                }
+            }
 
-
-            println("### -end- ###")
+            require(false) {"ERROR, should not have reached here!"}
             // (4) return that best state
             return state
         }
