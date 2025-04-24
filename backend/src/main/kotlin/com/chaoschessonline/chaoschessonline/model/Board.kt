@@ -166,6 +166,23 @@ data class Board(
         return playerIndices
     }
 
+    /**
+     * Is leader in supplied positionsList
+     *
+     * Linear search
+     *
+     * @param positionList
+     * @return
+     */
+    fun isLeaderInPositions(positionList: List<Int>): Boolean {
+        for (i in positionList) {
+            if (PieceType.isLeaderPiece(board[i])) {
+                return true
+            }
+        }
+        return false
+    }
+
     companion object {
         fun defaultBoard():Board {
             val size = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
