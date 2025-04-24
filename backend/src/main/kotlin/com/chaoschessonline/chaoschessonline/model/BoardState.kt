@@ -61,4 +61,12 @@ data class BoardState(
         return board.findAttackDirectionOfPos(action.from) != attackingDirection
     }
 
+    /**
+     * Find attacking pieces
+     *
+     * @param atkDir
+     * @return A list of Int indices representing position
+     */
+    fun findAttackingPieces(atkDir: Vector2D) : List<Int> = board.findAttackerIndices(atkDir)
+
 }
