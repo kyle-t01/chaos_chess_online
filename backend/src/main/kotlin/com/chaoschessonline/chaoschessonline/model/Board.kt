@@ -156,6 +156,7 @@ data class Board(
         val playerIndices:MutableList<Int> = mutableListOf()
         var idx = 0
         for (c in board) {
+            if (c == ' ') continue;
             if (PieceType.isPieceOfAttacker(c, atkDir)) {
                 playerIndices.add(idx)
             }
