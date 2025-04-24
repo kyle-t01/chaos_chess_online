@@ -105,15 +105,18 @@ enum class PieceType {
         fun isLeaderPieceOfAttacker(c:Char, attackDirection: Vector2D): Boolean {
             require(c != ' ' &&  (attackDirection == Vector2D.NORTH || attackDirection == Vector2D.SOUTH))
             // is c a leader?
-            when (c) {
-                'k' -> {;}
-                'K' -> {;}
-                'G' -> {;}
-                'g' -> {;}
-                else -> return false
-            }
+            if (!isLeaderPiece(c)) return false
+            // is c a leader of that player?
             if (!isPieceOfAttacker(c, attackDirection)) return false
             return true
+        }
+
+        fun isLeaderPiece(c: Char): Boolean {
+            when (c) {
+                'k','K' -> {return true}
+                'g','G' -> {return true}
+            }
+            return false
         }
     }
 }
