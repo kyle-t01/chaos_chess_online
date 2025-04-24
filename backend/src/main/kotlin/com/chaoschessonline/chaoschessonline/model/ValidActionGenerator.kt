@@ -7,10 +7,39 @@ class ValidActionGenerator {
 
     companion object {
         /**
-         * from char, get attackDirection, and Piece
-         * actions = moves + attacks
+         * Find actions of list
          *
+         * @param posList (assumed to be positions of player)
+         * @param state
+         * @return list of actions
+         */
+        fun findActionsOfList(posList:List<Int>, state: BoardState): List<Action> {
+            // TODO: current attacking pieces should be a CONSTANT taken from boardState
+            // TODO: should not need ask for attacking pieces?
+            // TODO: return an array instead of list for performance...?
+
+            // for positions, find valid actions (could be a mapping to save space?)
+            // KISS
+            val actions:MutableList<Action> = mutableListOf()
+            for (src in posList) {
+                val validDests = findPossibleActionsForIndex(src, state)
+                // map List<Int> to List<Action>
+                for (dest in validDests) {
+                    val action = Action.fromIndices(src, dest, Board.DEFAULT_DIMENSION)
+                    actions.add(action)
+                }
+            }
+
+            return actions
+        }
+
+
+        /**
+         * Find possible actions for index (actions = moves + attacks + any other special actions...)
          *
+         * @param index
+         * @param state
+         * @return List<Int> of possible actions
          */
         fun findPossibleActionsForIndex(index: Int, state: BoardState): List<Int> {
             // assume that index always within bounds, and called by moving player
