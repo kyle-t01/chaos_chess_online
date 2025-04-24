@@ -69,4 +69,13 @@ data class BoardState(
      */
     fun findAttackingPieces(atkDir: Vector2D) : List<Int> = board.findAttackerIndices(atkDir)
 
+    /**
+     * Find current attacking pieces
+     *
+     * Use the attacking direction of current moving player
+     *
+     * @return
+     */
+    fun findCurrentAttackingPieces() :List<Int> = findAttackingPieces(attackingDirection)
+
 }
