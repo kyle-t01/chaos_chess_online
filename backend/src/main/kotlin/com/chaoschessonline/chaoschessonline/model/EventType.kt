@@ -22,4 +22,5 @@ enum class EventType {
     LEAVE, // player left
     TIME, // time remaining for a timer
     TOTAL_TIME, // total time allocated for a timer
+    TEST, // event reserved for testing purposes
 }

@@ -205,6 +205,11 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
                 println("validList of actions are: $validActionIdx")
                 emit(session, Event(replyEventType, validActionIdx))
             }
+            EventType.TEST -> {
+                println("GOT TEST EVENT")
+                game.makeRandomMove()
+                emitToAllGameStateUpdated();
+            }
             else -> {
                 println("Unexpected Usage of $type !")
             }
