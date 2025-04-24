@@ -21,7 +21,7 @@ data class BoardState(
 )
 {
     var children: List<BoardState> = emptyList()
-    var eval:Int = 0
+    var eval:Double = 0.0
     private val attackingPieces:MutableList<Int> = mutableListOf()
 
     companion object {
