@@ -37,12 +37,25 @@ data class Board(
     fun applyAction(action: Action): Board {
         val from:Int = getIndexFromPosition(action.from)
         val to:Int = getIndexFromPosition(action.to)
-        // simply replace the dest/to piece with src/from piece
+        return applyAction(from, to)
+    }
+
+    /**
+     * Apply action
+     *
+     * @param from
+     * @param to
+     * @return
+     */
+    private fun applyAction(from: Int, to: Int): Board {
         val newBoardArr = board.copyOf()
         newBoardArr[to] = newBoardArr[from]
         newBoardArr[from] = ' '
         return Board(newBoardArr)
     }
+
+
+
 
     /**
      * Find attack direction of pos
