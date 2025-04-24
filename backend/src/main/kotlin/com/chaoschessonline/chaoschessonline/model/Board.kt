@@ -61,6 +61,8 @@ data class Board(
         val newBoardArr = board.copyOf()
         newBoardArr[to] = newBoardArr[from]
         newBoardArr[from] = ' '
+        println("(1) Moving [${from}] ${board[from]} TOWARDS [${to}] ${board[to]}..." )
+        println("(2) Result [${from}] ${newBoardArr[from]} :  [${to}] ${newBoardArr[to]}")
         return Board(newBoardArr)
     }
 
@@ -156,8 +158,7 @@ data class Board(
         val playerIndices:MutableList<Int> = mutableListOf()
         var idx = 0
         for (c in board) {
-            if (c == ' ') continue;
-            if (PieceType.isPieceOfAttacker(c, atkDir)) {
+            if (c != ' ' && PieceType.isPieceOfAttacker(c, atkDir)) {
                 playerIndices.add(idx)
             }
             idx += 1
