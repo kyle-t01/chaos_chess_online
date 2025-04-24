@@ -19,18 +19,35 @@ class Minimax {
             val ownPieces = state.findCurrentAttackingPieces()
             if (ownPieces.size == 0) return state;
 
-            // first select a random piece within this list
-            val src:Int = Random.nextInt(0, ownPieces.size)
+            println("###makeRandomAction()###")
+            println("##Attacking Pieces:")
+            for (p in ownPieces) {
+                println("$p: ${state.board.getPieceChar(p)}")
+            }
+            println("####")
 
-            // generate valid destination for this piece
-            val destList= ValidActionGenerator.findPossibleActionsForIndex(src, state)
-            if (destList.size == 0) return state;
+            // for all pieces, find the first piece that has a valid destination
+            var src:Int = -1
+            val validDest:MutableList<Int> = mutableListOf()
+            for (p in ownPieces) {
+                val destList = ValidActionGenerator.findPossibleActionsForIndex(p, state)
+                if (destList.size > 0) {
+                    validDest.addAll(destList)
+                    src = p
+                    break
+                }
+            }
+            if (validDest.size == 0) return state;
+            println("# picked SRC piece $src: ${state.board.getPieceChar(src)}")
 
-            // choose one random destination
-            val dest = Random.nextInt(0, destList.size)
 
-            // apply action
+            // select a destination found
+            println("validDests = $validDest")
+            val dest:Int = validDest[Random.nextInt(0, validDest.size)]
+            println("# picked DEST piece $dest: ${state.board.getPieceChar(dest)}")
+
             val newState = state.applyAction(src, dest)
+
             return newState
         }
     }
