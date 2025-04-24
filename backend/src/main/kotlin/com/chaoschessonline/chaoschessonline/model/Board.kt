@@ -29,6 +29,16 @@ data class Board(
     }
 
     /**
+     * Get piece char using an Int position
+     *
+     * @param position
+     * @return
+     */
+    fun getPieceChar(position: Int): Char {
+        return board[position]
+    }
+
+    /**
      * Apply action, assumes action is already valid
      *
      * @param action
