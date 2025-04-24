@@ -123,6 +123,24 @@ data class Board(
         return board[dest] == ' '
     }
 
+    /**
+     * Find indices of an attacking player
+     *
+     * @param atkDir
+     * @return
+     */
+    fun findAttackerIndices(atkDir: Vector2D): List<Int> {
+        val playerIndices:MutableList<Int> = mutableListOf()
+        var idx = 0
+        for (c in board) {
+            if (PieceType.isPieceOfAttacker(c, atkDir)) {
+                playerIndices.add(idx)
+            }
+            idx += 1
+        }
+        return playerIndices
+    }
+
     companion object {
         fun defaultBoard():Board {
             val size = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
