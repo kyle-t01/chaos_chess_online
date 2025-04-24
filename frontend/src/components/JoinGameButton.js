@@ -4,7 +4,7 @@ import { GlobalVars } from "../context/GlobalContext";
 const JoinGameButton = () => {
 
     // global state
-    const { handlePlayerJoinNorth, handlePlayerJoinSouth, hasJoined, gameState } = GlobalVars();
+    const { handlePlayerJoinNorth, handlePlayerJoinSouth, hasJoined, gameState, sendEvent } = GlobalVars();
 
     const renderJoinSouthButton = () => {
         return (
@@ -21,10 +21,18 @@ const JoinGameButton = () => {
             </button>
         );
     }
+
+    const handleTest = () => {
+        sendEvent("TEST", "")
+    }
+
     return (
         <div className="join-game-buttons">
             {renderJoinSouthButton()}
             {renderJoinNorthButton()}
+            <button className="button" onClick={handleTest}>
+                Test random move
+            </button>
 
         </div>
     );
