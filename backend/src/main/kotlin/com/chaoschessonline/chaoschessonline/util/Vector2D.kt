@@ -1,5 +1,6 @@
 package com.chaoschessonline.chaoschessonline.util
 
+import com.chaoschessonline.chaoschessonline.model.Board
 import kotlin.math.abs
 
 /**
@@ -72,6 +73,11 @@ data class Vector2D(val col: Int, val row: Int)
     }
 
 
+    fun getIndex(dimension: Vector2D): Int {
+        // require() {"INCORRECT USAGE: position must be within dimension"}
+        return col + row * dimension.col
+    }
+
     companion object {
         // unit directions where (0,0) is located bottom-left
         val NORTH = Vector2D(0, 1)
@@ -123,6 +129,17 @@ data class Vector2D(val col: Int, val row: Int)
             val colPos = posStrList[0].toInt()
             val rowPos = posStrList[1].toInt()
             return Vector2D(colPos, rowPos)
+        }
+
+        /**
+         * From index (and given board dimension)
+         *
+         * @param index
+         * @param dimension
+         * @return
+         */
+        fun fromIndex(index: Int, dimension: Vector2D):Vector2D {
+            return Vector2D(index % dimension.col, index / dimension.row)
         }
     }
 }
