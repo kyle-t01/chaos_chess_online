@@ -19,17 +19,14 @@ class StateEvaluator {
             // always evaluate from player's perspective
             val playerDir = state.attackingDirection
             val enemyDir = playerDir.reflectRow()
-            val isMaxPlayer = (playerDir == Vector2D.NORTH)
-            // there is probs some more efficient way of doing this...
-            val worstEval = if (isMaxPlayer) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
-            val bestEval = if (isMaxPlayer) Double.POSITIVE_INFINITY else Double.NEGATIVE_INFINITY
+
             // check whether current player is lost first
             if (state.isTerminalStateForPlayer(playerDir)) {
-                return worstEval
+                return bestEvalOfPlayer(enemyDir)
             }
             // did our enemy lose?
             if (state.isTerminalStateForPlayer(enemyDir)) {
-                return bestEval
+                return bestEvalOfPlayer(playerDir)
             }
 
             // now just simply count difference in the number of pieces (assign scores later)
@@ -41,6 +38,17 @@ class StateEvaluator {
             return score.toDouble()
 
         }
+
+        val MAXISMISER_BEST_EVAL = Double.POSITIVE_INFINITY
+        val MINIMISER_BEST_EVAL = Double.NEGATIVE_INFINITY
+
+        fun bestEvalOfPlayer(atkDir: Vector2D): Double {
+            val isMaxPlayer = (atkDir == Vector2D.NORTH) && (atkDir != Vector2D.SOUTH)
+            val bestEval = if (isMaxPlayer) MAXISMISER_BEST_EVAL else MINIMISER_BEST_EVAL
+            return bestEval
+        }
+
+
 
 
 
