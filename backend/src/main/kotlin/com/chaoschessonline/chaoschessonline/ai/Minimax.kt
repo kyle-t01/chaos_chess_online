@@ -4,17 +4,21 @@ import com.chaoschessonline.chaoschessonline.util.Vector2D
 import com.chaoschessonline.chaoschessonline.model.BoardState
 import com.chaoschessonline.chaoschessonline.model.Action
 import com.chaoschessonline.chaoschessonline.model.ValidActionGenerator
+import java.util.*
+import kotlin.collections.ArrayDeque
+import kotlin.collections.ArrayList
 
 import kotlin.random.Random
+import kotlin.reflect.jvm.internal.impl.utils.DFS.Visited
 
 class Minimax {
 
     companion object {
-        fun minimax(state:BoardState, depth:Int, atkDir:Vector2D) {
+        fun minimax(state: BoardState, depth: Int, atkDir: Vector2D) {
             ;
         }
 
-        fun makeRandomAction(state:BoardState): BoardState {
+        fun makeRandomAction(state: BoardState): BoardState {
             // make a random action, depending on current boardstate
             val ownPieces = state.findCurrentAttackingPieces()
             if (ownPieces.size == 0) return state;
@@ -27,8 +31,8 @@ class Minimax {
             println("####")
 
             // for all pieces, find the first piece that has a valid destination
-            var src:Int = -1
-            val validDest:MutableList<Int> = mutableListOf()
+            var src: Int = -1
+            val validDest: MutableList<Int> = mutableListOf()
             for (p in ownPieces) {
                 val destList = ValidActionGenerator.findPossibleActionsForIndex(p, state)
                 if (destList.size > 0) {
@@ -43,7 +47,7 @@ class Minimax {
 
             // select a destination found
             println("validDests = $validDest")
-            val dest:Int = validDest[Random.nextInt(0, validDest.size)]
+            val dest: Int = validDest[Random.nextInt(0, validDest.size)]
             println("# picked DEST piece $dest: ${state.board.getPieceChar(dest)}")
 
             val newState = state.applyAction(src, dest)
@@ -56,7 +60,7 @@ class Minimax {
             val pieces = state.findCurrentAttackingPieces()
             val actions = ValidActionGenerator.findActionsOfList(pieces, state)
             // (2) get a list of next possible states
-            val nextStates:MutableList<BoardState> = mutableListOf()
+            val nextStates: MutableList<BoardState> = mutableListOf()
             for (a in actions) {
                 // apply each action to get a board state
                 val next = state.applyAction(a)
@@ -65,7 +69,7 @@ class Minimax {
             // (3) evaluation of states, and find best state
             println("### makeGreedyAction() ###")
             // eval from perspective of max or min player
-            val playerDir:Int = state.attackingDirection.row
+            val playerDir: Int = state.attackingDirection.row
             // -1 means attack downwards, north player is min player
             val maxPlayer: Boolean = (playerDir != -1)
             val worstEvalOfThisPlayer = if (maxPlayer) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
@@ -95,9 +99,91 @@ class Minimax {
                 }
             }
 
-            require(false) {"ERROR, should not have reached here!"}
+            require(false) { "ERROR, should not have reached here!" }
             // (4) return that best state
             return state
+        }
+
+
+        fun traverseLevelOrder(root: BoardState) {
+            // (0) if a terminal state, exit
+            if (root.isTerminalState()) return
+
+            // queue
+            val queue: ArrayDeque<BoardState> = ArrayDeque<BoardState>()
+            queue.addLast(root)
+
+            // visitation array (actually a set of states that we generated children for)
+            val visited: MutableSet<String> = mutableSetOf()
+
+            // level sizes of each depth
+            val levelSizes: MutableList<Int> = mutableListOf()
+
+            // time it took for one level
+            val levelTimes: MutableList<Long> = mutableListOf()
+
+            // branching factor on average
+            val branchingFactors: MutableList<Double> = mutableListOf()
+
+
+            // traverse this level and find all possible next states for this level
+            var depth = 0;
+            while (!queue.isEmpty() && depth <= 4) {
+                // level-order traversal: find number of branches in this level
+                val levelSize = queue.size
+                levelSizes.add(levelSize)
+                val startTime = System.currentTimeMillis()
+                println("### LEVEL $depth ###")
+                println(">> levelSize: $levelSize")
+
+                // for all children in this level
+                for (x in 0..levelSize - 1) {
+                    val curr = queue.removeFirst()
+
+                    // get the hash
+                    val hash = curr.board.board.joinToString("") + curr.attackingDirection
+
+                    // if visited continue
+                    if (hash in visited) continue
+
+                    // mark this as visited
+                    visited.add(hash)
+
+                    // if this state is a terminal state, don't bother generating children
+                    if (curr.isTerminalState()) continue
+
+                    // (1) find all possible actions of one child
+                    val pieces = curr.findCurrentAttackingPieces()
+                    val actions = ValidActionGenerator.findActionsOfList(pieces, curr)
+                    for (a in actions) {
+                        // apply each action to get a board state
+                        val next = curr.applyAction(a)
+
+                        val childHash = next.board.board.joinToString("") + next.attackingDirection
+                        // should be 0(1) search
+                        if (childHash in visited) continue
+
+                        // does not account for if already in queue, but not visited yet
+                        // but OK since when pop(), will check against whether visited anyways
+                        //NOT WORTH the extra 0(n) time in linear search using queue.contains(next)
+
+                        // if (queue.contains(next)) continue
+
+                        queue.addLast(next)
+                    }
+                }
+                // track time taken for this level
+                val timeTaken = System.currentTimeMillis() - startTime
+                levelTimes.add(timeTaken)
+                println(">> levelTime: $timeTaken")
+                println(">> unique visited states: ${visited.size}")
+
+                depth += 1
+            }
+            println("--STATS--")
+            println("levelSizes: $levelSizes")
+            println("final depth reached is $depth")
+            println("unique board states is ${visited.size}")
         }
     }
 }
