@@ -30,6 +30,15 @@ data class BoardState(
     }
 
     /**
+     * To hash str
+     *
+     * @return
+     */
+    fun toHashStr(): String{
+        return board.board.joinToString("") + attackingDirection
+    }
+
+    /**
      * Apply action, and get a new boardstate
      *
      * @param action
