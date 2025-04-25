@@ -185,5 +185,153 @@ class Minimax {
             println("final depth reached is $depth")
             println("unique board states is ${visited.size}")
         }
+        fun traverseRandomlyFromBookMoves(root: BoardState) {
+            // (0) if a terminal state, exit
+            if (root.isTerminalState()) return
+
+            // queue
+            val queue:ArrayDeque<BoardState> = ArrayDeque<BoardState>()
+            queue.addLast(root)
+
+            // visitation array (actually a set of states that we generated children for)
+            val visited: MutableSet<String> = mutableSetOf()
+
+            // level sizes of each depth
+            val levelSizes:MutableList<Int> = mutableListOf()
+
+            // time it took for one level
+            val levelTimes:MutableList<Long> = mutableListOf()
+
+            // branching factor on average
+            val branchingFactors:MutableList<Double> =  mutableListOf()
+
+
+            // traverse this level and find all possible next states for this level
+            var depth = 0;
+            while(!queue.isEmpty() && depth < 2) {
+                // level-order traversal: find number of branches in this level
+                val levelSize = queue.size
+                levelSizes.add(levelSize)
+                val startTime = System.currentTimeMillis()
+                println("### LEVEL $depth ###")
+                println(">> levelSize: $levelSize")
+
+                // for all children in this level
+                for (x in 0..levelSize-1){
+                    val curr = queue.removeFirst()
+
+                    // get the hash
+                    val hash = curr.board.board.joinToString("") + curr.attackingDirection
+
+                    // if visited continue
+                    if (hash in visited) continue
+
+                    // mark this as visited
+                    visited.add(hash)
+
+                    // if this state is a terminal state, don't bother generating children
+                    if (curr.isTerminalState()) continue
+
+                    // (1) find all possible actions of one child
+                    val pieces = curr.findCurrentAttackingPieces()
+                    val actions = ValidActionGenerator.findActionsOfList(pieces, curr)
+                    for (a in actions) {
+                        // apply each action to get a board state
+                        val next = curr.applyAction(a)
+
+                        val childHash = next.toHashStr()
+                        // should be 0(1) search
+                        if (childHash in visited) continue
+
+                        // does not account for if already in queue, but not visited yet
+                        // but OK since when pop(), will check against whether visited anyways
+                        //NOT WORTH the extra 0(n) time in linear search using queue.contains(next)
+
+                        // if (queue.contains(next)) continue
+
+                        queue.addLast(next)
+                    }
+                }
+                // track time taken for this level
+                val timeTaken = System.currentTimeMillis() - startTime
+                levelTimes.add(timeTaken)
+                println(">> levelTime: $timeTaken")
+                println(">> unique visited states: ${visited.size}")
+
+                depth += 1
+            }
+
+            // here, traverse it in DFS fashion, rename it to stack
+            val stack = queue
+            var results:Vector2D = Vector2D(0,0)
+            var index = 0;
+            val size = stack.size
+            while(!stack.isEmpty()) {
+                val bookState = stack.removeLast()
+                var maxWins = 0
+                var minWins = 0
+                for (i in 1..100) {
+
+                    val terminal = playRandomlyTilTerminal(bookState)
+                    //println("${terminal.board} ${terminal.turnNumber} ${StateEvaluator.evaluate(terminal)}")
+                    val score = StateEvaluator.evaluate(terminal)
+                    if (!(score == Double.NEGATIVE_INFINITY || score == Double.POSITIVE_INFINITY)) {
+                        continue
+                    }
+                    if (score == Double.POSITIVE_INFINITY) {
+                        maxWins += 1
+
+                    } else {
+                        minWins +=1
+                    }
+
+                }
+
+                results += Vector2D(maxWins, minWins)
+
+                println("### BOOK MOVE ${index+1} / $size ###")
+                println("explored one book state of ${bookState.board}")
+                println("maxWins = $maxWins, minWins = $minWins")
+                // looks like chess player will win 42% of time
+                // xiang qi will win 58% of the time
+                println("### END BOOK MOVE")
+                index +=1
+            }
+
+
+            println("--STATS--")
+            println("levelSizes: $levelSizes")
+            println("results = $results")
+            println("final depth reached is $depth")
+            println("unique board states is ${visited.size}")
+        }
+
+        fun playRandomlyTilTerminal(root: BoardState): BoardState {
+            val stack: ArrayDeque<BoardState> = ArrayDeque()
+            stack.addLast(root)
+            val visited: MutableSet<String> = mutableSetOf()
+
+            // explore children of root with sampling
+            while (!stack.isEmpty()) {
+                val curr = stack.removeLast()
+                // if visited continue
+                if (curr.toHashStr() in visited) continue
+
+                // mark this as visited
+                visited.add(curr.toHashStr())
+                if (curr.isTerminalState()) {
+
+                    return curr
+                }
+
+                val actions = ValidActionGenerator.findActionsOfList(curr.findCurrentAttackingPieces(), curr)
+                val nextStates = actions.map { curr.applyAction(it) }
+                val freshStates = nextStates.filter { (it.toHashStr() !in visited) }
+                if (freshStates.isEmpty()) return curr
+                val sampleNext = freshStates.shuffled()[0]
+                stack.addLast(sampleNext)
+            }
+            return root
+        }
     }
 }
