@@ -2,14 +2,11 @@ package com.chaoschessonline.chaoschessonline.ai
 
 import com.chaoschessonline.chaoschessonline.util.Vector2D
 import com.chaoschessonline.chaoschessonline.model.BoardState
-import com.chaoschessonline.chaoschessonline.model.Action
 import com.chaoschessonline.chaoschessonline.model.ValidActionGenerator
 import java.util.*
 import kotlin.collections.ArrayDeque
-import kotlin.collections.ArrayList
 
 import kotlin.random.Random
-import kotlin.reflect.jvm.internal.impl.utils.DFS.Visited
 
 class Minimax {
 
@@ -270,6 +267,7 @@ class Minimax {
                 val bookState = stack.removeLast()
                 var maxWins = 0
                 var minWins = 0
+                var depth = 0
                 for (i in 1..100) {
 
                     val terminal = playRandomlyTilTerminal(bookState)
@@ -292,6 +290,7 @@ class Minimax {
                 println("### BOOK MOVE ${index+1} / $size ###")
                 println("explored one book state of ${bookState.board}")
                 println("maxWins = $maxWins, minWins = $minWins")
+
                 // looks like chess player will win 42% of time
                 // xiang qi will win 58% of the time
                 println("### END BOOK MOVE")
@@ -333,5 +332,70 @@ class Minimax {
             }
             return root
         }
+
+        fun playRandomSimulation(root: BoardState): BoardState {
+            if (root.isTerminalState()) {
+                return root
+            }
+            val startTime = System.currentTimeMillis()
+
+            // immediately generate add all children
+            val actions = ValidActionGenerator.findActionsOfList(root.findCurrentAttackingPieces(), root)
+            val nextStates = actions.map { root.applyAction(it) }
+            // for each state, play til terminal state
+            for (next in nextStates) {
+                val initialDepth = next.turnNumber
+                val maxiDepths: MutableList<Int> = mutableListOf()
+                val miniDepths: MutableList<Int> = mutableListOf()
+                for (plays in 1..100) {
+
+                    val terminal = playRandomlyTilTerminal(next)
+                    val score = StateEvaluator.evaluate(terminal)
+
+
+                    if (!(score == Double.NEGATIVE_INFINITY || score == Double.POSITIVE_INFINITY)) {
+                        continue
+                    }
+                    // bug should be from current player's perspective?
+                    val depthDiff = terminal.turnNumber - initialDepth
+                    if (score == Double.POSITIVE_INFINITY) {
+                        maxiDepths.add(depthDiff)
+                    } else {
+                        miniDepths.add(depthDiff)
+                    }
+                    println("terminal ${terminal.board} score: $score depth: ${terminal.turnNumber}")
+
+                    /*
+                    var par = terminal.parent
+                    while(par != null) {
+                        // println("parent ${par.board} at depth: ${par.turnNumber}")
+                        par = par.parent
+
+                    }
+
+                     */
+
+                }
+                println("maxWins = ${maxiDepths.size}, minWins = ${miniDepths.size}")
+                val aveMaxWinDepth:Double = maxiDepths.average()
+                val aveMinWinDepth:Double = miniDepths.average()
+
+                println(">> maxPlayer ave win depth = $aveMaxWinDepth, minPlayer ave win depth = $aveMinWinDepth")
+                maxiDepths.sort()
+                miniDepths.sort()
+                println(">> maxiList = $maxiDepths, miniList = $miniDepths")
+                println(">> totalWins = ${maxiDepths.size + miniDepths.size}")
+                val sum = maxiDepths.sum() + miniDepths.sum()
+                println(">> average depth to win = ${sum/(maxiDepths.size + miniDepths.size)}")
+                println(">> ")
+                println("##### END SIMULATION FOR ONE CHILD #####")
+            }
+            val endTime = System.currentTimeMillis()
+            println("### simulating each child X times takes ${endTime-startTime}")
+
+            return root
+        }
+
+
     }
 }
