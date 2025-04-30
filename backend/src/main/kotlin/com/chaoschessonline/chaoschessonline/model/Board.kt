@@ -202,6 +202,12 @@ data class Board(
             return Board(array)
         }
 
+        fun fromString(str: String): Board {
+            val arr = str.split(",").map { it.trim().firstOrNull() ?: ' ' }.toTypedArray()
+            println(arr.size)
+            return Board(arr)
+        }
+
         val XIANGQI_PIECES_BOTTOM_HALF: Map<Vector2D, PieceType> = mapOf(
             Vector2D(1,0) to PieceType.HORSE,
             Vector2D(4,0) to PieceType.HORSE,
