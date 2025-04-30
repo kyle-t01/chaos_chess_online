@@ -27,6 +27,7 @@ data class BoardState(
     companion object {
         fun defaultBoardState() = BoardState(null, Board.defaultBoard(), 0, Vector2D.NORTH)
         fun northStartBoardState() = BoardState(null, Board.defaultBoard(), 0, Vector2D.SOUTH)
+        fun testBoardState(board: Board, atkDir: Vector2D) = BoardState(null, board, 0, atkDir)
     }
 
     /**
