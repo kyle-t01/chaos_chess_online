@@ -51,8 +51,7 @@ class Minimax {
 
         fun makeGreedyAction(state: BoardState): BoardState {
             // (1) find all possible actions
-            val pieces = state.findCurrentAttackingPieces()
-            val actions = ValidActionGenerator.findActionsOfList(pieces, state)
+            val actions = ValidActionGenerator.findAllValidActions(state)
             // (2) get a list of next possible states
             val nextStates: MutableList<BoardState> = mutableListOf()
             for (a in actions) {
@@ -150,7 +149,7 @@ class Minimax {
 
                     // (1) find all possible actions of one child
                     val pieces = curr.findCurrentAttackingPieces()
-                    val actions = ValidActionGenerator.findActionsOfList(pieces, curr)
+                    val actions = ValidActionGenerator.findAllValidActions(root)
                     for (a in actions) {
                         // apply each action to get a board state
                         val next = curr.applyAction(a)
@@ -230,7 +229,7 @@ class Minimax {
 
                     // (1) find all possible actions of one child
                     val pieces = curr.findCurrentAttackingPieces()
-                    val actions = ValidActionGenerator.findActionsOfList(pieces, curr)
+                    val actions = ValidActionGenerator.findAllValidActions(root)
                     for (a in actions) {
                         // apply each action to get a board state
                         val next = curr.applyAction(a)
@@ -351,7 +350,7 @@ class Minimax {
             val startTime = System.currentTimeMillis()
 
             // immediately generate add all children
-            val actions = ValidActionGenerator.findActionsOfList(root.findCurrentAttackingPieces(), root)
+            val actions = ValidActionGenerator.findAllValidActions(root)
             val nextStates = actions.map { root.applyAction(it) }
             // for each state, play til terminal state
             for (next in nextStates) {
@@ -413,7 +412,7 @@ class Minimax {
             // assume that this is NOT a terminal state
             require(!root.isTerminalState()) {"ERROR: root must not be in a terminal state!!"}
 
-            
+
 
             return 0.0
         }
