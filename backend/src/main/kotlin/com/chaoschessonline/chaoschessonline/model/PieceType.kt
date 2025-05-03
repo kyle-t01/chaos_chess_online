@@ -121,9 +121,6 @@ enum class PieceType {
 
         fun getScore(c: Char): Double {
             var score = 0.0
-            if (isLeaderPiece(c)) {
-                score = 200.0
-            }
 
             when(c.uppercaseChar()) {
                 'P', 'Z' -> {
@@ -164,6 +161,9 @@ enum class PieceType {
                 }
                 ' ', '.' -> {
                     score = 0.0 // empty space
+                }
+                'G','K' -> {
+                    score = 200.0
                 }
                 else -> {
                     require(false) { "Error: unexpected piece type of $c" }
