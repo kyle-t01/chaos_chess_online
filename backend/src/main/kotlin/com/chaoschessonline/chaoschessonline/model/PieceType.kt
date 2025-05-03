@@ -159,8 +159,12 @@ enum class PieceType {
                 }
 
                 'C' -> {
+                    //useless when no more pieces left to jump over so put 4.0 for now
                     score = 4.0
-                } //useless when no more pieces left to jump over so put 4.0 for now
+                }
+                ' ', '.' -> {
+                    score = 0.0 // empty space
+                }
                 else -> {
                     require(false) { "Error: unexpected piece type of $c" }
                 }

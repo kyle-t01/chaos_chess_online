@@ -183,6 +183,19 @@ data class Board(
         return false
     }
 
+    /**
+     * Find sum of piece scores added together
+     *
+     * @return score
+     */
+    fun findAllPiecesScore(): Double {
+        var score = 0.0
+        for (c in board) {
+            score += PieceType.getScore(c)
+        }
+        return score
+    }
+
     companion object {
         fun defaultBoard():Board {
             val size = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
