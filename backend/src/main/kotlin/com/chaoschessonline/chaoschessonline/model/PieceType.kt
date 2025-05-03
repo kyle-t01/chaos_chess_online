@@ -118,5 +118,50 @@ enum class PieceType {
             }
             return false
         }
+
+        fun getScore(c: Char): Double {
+            if (isLeaderPiece(c)) return 200.0
+            when(c.uppercaseChar()) {
+                'P', 'Z' -> {
+                    return 1.0
+                }
+
+                'B' -> {
+                    return 3.0
+                }
+
+                'N' -> {
+                    return 3.0
+                }
+
+                'M' -> {
+                    return 2.5
+                }
+
+                'R', 'J' -> {
+                    return 5.0
+                }
+
+                'Q' -> {
+                    return 9.0
+                }
+
+                'S' -> {
+                    return 1.0
+                }
+
+                'X' -> {
+                    return 1.0
+                }
+
+                'C' -> {
+                    return 4.0
+                } //useless when no more pieces left to jump over so put 4.0 for now
+                else -> {
+                    require(false) { "Error: unexpected piece type of $c" }
+                }
+            }
+            return 0.0;
+        }
     }
 }
