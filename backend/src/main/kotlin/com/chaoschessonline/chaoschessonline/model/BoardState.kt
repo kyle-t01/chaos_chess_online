@@ -141,7 +141,7 @@ data class BoardState(
         if (board.isLeaderInPositions(pieces) == false) return true
         // no valid moves
         // for each attacking piece, no legal move
-        val validActions = ValidActionGenerator.findActionsOfList(pieces, this)
+        val validActions = ValidActionGenerator.findAllValidActions(this)
         if (validActions.size == 0) return true
 
         return false

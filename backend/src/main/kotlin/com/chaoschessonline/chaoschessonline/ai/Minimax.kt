@@ -11,9 +11,6 @@ import kotlin.random.Random
 class Minimax {
 
     companion object {
-        fun minimax(state: BoardState, depth: Int, atkDir: Vector2D) {
-            ;
-        }
 
         fun makeRandomAction(state: BoardState): BoardState {
             // make a random action, depending on current boardstate
@@ -101,7 +98,9 @@ class Minimax {
             return state
         }
 
-
+        /***
+         * deprecated: don't use
+         */
         fun traverseLevelOrder(root: BoardState) {
             // (0) if a terminal state, exit
             if (root.isTerminalState()) return
@@ -305,6 +304,12 @@ class Minimax {
             println("unique board states is ${visited.size}")
         }
 
+        /**
+         * Play randomly til terminal (deprecated, do not use)
+         *
+         * @param root
+         * @return
+         */
         fun playRandomlyTilTerminal(root: BoardState): BoardState {
             val stack: ArrayDeque<BoardState> = ArrayDeque()
             stack.addLast(root)
@@ -323,7 +328,7 @@ class Minimax {
                     return curr
                 }
 
-                val actions = ValidActionGenerator.findActionsOfList(curr.findCurrentAttackingPieces(), curr)
+                val actions = ValidActionGenerator.findAllValidActions(root)
                 val nextStates = actions.map { curr.applyAction(it) }
                 val freshStates = nextStates.filter { (it.toHashStr() !in visited) }
                 if (freshStates.isEmpty()) return curr
@@ -333,6 +338,12 @@ class Minimax {
             return root
         }
 
+        /**
+         * Play random simulation (deprecated, for stats purposes only)
+         *
+         * @param root
+         * @return
+         */
         fun playRandomSimulation(root: BoardState): BoardState {
             if (root.isTerminalState()) {
                 return root
@@ -394,6 +405,17 @@ class Minimax {
             println("### simulating each child X times takes ${endTime-startTime}")
 
             return root
+        }
+
+
+        fun findStrategicScore(root:BoardState): Double {
+            // for this root play it 100 times to the end
+            // assume that this is NOT a terminal state
+            require(!root.isTerminalState()) {"ERROR: root must not be in a terminal state!!"}
+
+            
+
+            return 0.0
         }
 
 
