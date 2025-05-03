@@ -29,13 +29,10 @@ class StateEvaluator {
                 return bestEvalOfPlayer(playerDir)
             }
 
-            // now just simply count difference in the number of pieces (assign scores later)
-            val minPieces = state.findAttackingPieces(Vector2D.SOUTH)
-            val maxPieces = state.findAttackingPieces(Vector2D.NORTH)
+            // TODO: for now, just return sum of piece scores
+            val score: Double = state.board.findAllPiecesScore()
 
-            val score: Int = maxPieces.size - minPieces.size
-
-            return score.toDouble()
+            return score
 
         }
 
