@@ -139,28 +139,12 @@ class Game()
     }
 
     /**
-     * Make random move (using strategy supplied by minimax)
+     * Make next state
      *
-     * @return
+     * @return true when a move can be made
      */
-    fun makeRandomMove(): Boolean {
-        val newState = Minimax.makeRandomAction(currentState)
-        if (currentState == newState) {
-            println("COULD NOT MAKE A RANDOM MOVE for ${currentState.attackingDirection}")
-            return false
-        }
-        // set the new state
-        currentState = newState
-        return true
-    }
-    // TODO: apply strategy pattern for different movement implementations
-    /**
-     * Make greedy move
-     *
-     * @return
-     */
-    fun makeGreedyMove(): Boolean {
-        val newState = Minimax.makeGreedyAction(currentState)
+    fun makeNextState(): Boolean {
+        val newState = Minimax.makeNextState(currentState)
         if (currentState == newState) {
             println("COULD NOT MAKE A RANDOM MOVE for ${currentState.attackingDirection}")
             return false
