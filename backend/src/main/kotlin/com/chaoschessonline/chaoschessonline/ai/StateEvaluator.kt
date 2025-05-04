@@ -12,7 +12,7 @@ import com.chaoschessonline.chaoschessonline.util.Vector2D
  */
 class StateEvaluator {
     companion object {
-        fun evaluate(state: BoardState): Double {
+        fun findTacticalScore(state: BoardState): Double {
 
             // TODO: refactor isTerminalStateForPlayer() to two seperate functions (don't expose state.attackingDir..)
 

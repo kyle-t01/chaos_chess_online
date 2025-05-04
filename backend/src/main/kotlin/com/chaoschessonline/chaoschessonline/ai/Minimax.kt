@@ -63,7 +63,7 @@ class Minimax {
             val worstEvalOfThisPlayer = if (maxPlayer) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
             var evalWanted = worstEvalOfThisPlayer
             for (s in nextStates) {
-                val eval = StateEvaluator.evaluate(s)
+                val eval = StateEvaluator.findTacticalScore(s)
                 // TODO: should set evaluation within the boardstate object
                 s.eval = eval
                 println("${s.board} has eval of $eval")
@@ -267,7 +267,7 @@ class Minimax {
 
                     val terminal = playRandomlyTilTerminal(bookState)
                     //println("${terminal.board} ${terminal.turnNumber} ${StateEvaluator.evaluate(terminal)}")
-                    val score = StateEvaluator.evaluate(terminal)
+                    val score = StateEvaluator.findTacticalScore(terminal)
                     if (!(score == Double.NEGATIVE_INFINITY || score == Double.POSITIVE_INFINITY)) {
                         continue
                     }
@@ -354,7 +354,7 @@ class Minimax {
                 for (plays in 1..100) {
 
                     val terminal = playRandomlyTilTerminal(next)
-                    val score = StateEvaluator.evaluate(terminal)
+                    val score = StateEvaluator.findTacticalScore(terminal)
 
 
                     if (!(score == Double.NEGATIVE_INFINITY || score == Double.POSITIVE_INFINITY)) {
@@ -422,7 +422,7 @@ class Minimax {
                 // reach terminal for each child
                 val terminal = playRandomlyTilTerminal(root)
                 // collect stats such as average win depth, and total wins for each player
-                val score  = StateEvaluator.evaluate(terminal)
+                val score  = StateEvaluator.findTacticalScore(terminal)
                 if (!StateEvaluator.scoreIsTerminal(score)) {
                     // ignore cases where a draw or cannot be scored
                     t++;
@@ -475,7 +475,6 @@ class Minimax {
             println("we are maximising player (attackNORTH) $isMaxiPlayer")
             println("maxWins, depth = $maxiWinsTotal, $maxiAverageWinDepth | minWins, depth = $miniWinsTotal, $miniAverageWinDepth")
             println("propwins: $propOfWins, fastWin: $fastWin, farAheadValue: $farAheadValue")
-
             return (propOfWins*fastWin*farAheadValue)
         }
 
