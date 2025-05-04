@@ -5,6 +5,7 @@ import com.chaoschessonline.chaoschessonline.model.BoardState
 import com.chaoschessonline.chaoschessonline.model.ValidActionGenerator
 import java.util.*
 import kotlin.collections.ArrayDeque
+import kotlin.math.abs
 
 import kotlin.random.Random
 
@@ -50,16 +51,10 @@ class Minimax {
         }
 
         fun makeGreedyAction(state: BoardState): BoardState {
-            // (1) find all possible actions
-            val actions = ValidActionGenerator.findAllValidActions(state)
-            // (2) get a list of next possible states
-            val nextStates: MutableList<BoardState> = mutableListOf()
-            for (a in actions) {
-                // apply each action to get a board state
-                val next = state.applyAction(a)
-                nextStates.add(next)
-            }
-            // (3) evaluation of states, and find best state
+            // (1) find all possible next states
+            val nextStates = state.generateNextStates()
+
+            // (2) evaluation of states, and find best state
             println("### makeGreedyAction() ###")
             // eval from perspective of max or min player
             val playerDir: Int = state.attackingDirection.row
@@ -97,8 +92,10 @@ class Minimax {
             return state
         }
 
-        /***
-         * deprecated: don't use
+        /**
+         * Traverse level order (deprecated - do not use)
+         *
+         * @param root
          */
         fun traverseLevelOrder(root: BoardState) {
             // (0) if a terminal state, exit
@@ -304,7 +301,7 @@ class Minimax {
         }
 
         /**
-         * Play randomly til terminal (deprecated, do not use)
+         * Play randomly til terminal
          *
          * @param root
          * @return
@@ -323,12 +320,10 @@ class Minimax {
                 // mark this as visited
                 visited.add(curr.toHashStr())
                 if (curr.isTerminalState()) {
-
                     return curr
                 }
-
-                val actions = ValidActionGenerator.findAllValidActions(root)
-                val nextStates = actions.map { curr.applyAction(it) }
+                val nextStates = curr.generateNextStates()
+                if (nextStates.isEmpty()) return curr
                 val freshStates = nextStates.filter { (it.toHashStr() !in visited) }
                 if (freshStates.isEmpty()) return curr
                 val sampleNext = freshStates.shuffled()[0]
@@ -350,8 +345,7 @@ class Minimax {
             val startTime = System.currentTimeMillis()
 
             // immediately generate add all children
-            val actions = ValidActionGenerator.findAllValidActions(root)
-            val nextStates = actions.map { root.applyAction(it) }
+            val nextStates = root.generateNextStates()
             // for each state, play til terminal state
             for (next in nextStates) {
                 val initialDepth = next.turnNumber
@@ -412,9 +406,77 @@ class Minimax {
             // assume that this is NOT a terminal state
             require(!root.isTerminalState()) {"ERROR: root must not be in a terminal state!!"}
 
+            // TODO: consider for each child, play til terminal multiple times
+            // But in this case, just play each root til terminal X times
 
 
-            return 0.0
+            // keep track best child
+            val startDepth = root.turnNumber;
+            var t = 0
+            val TIMES = 100
+            var miniWinDepthSum = 0.0
+            var maxiWinDepthSum = 0.0
+            var miniWinsTotal = 0
+            var maxiWinsTotal = 0
+            while (t < TIMES) {
+                // reach terminal for each child
+                val terminal = playRandomlyTilTerminal(root)
+                // collect stats such as average win depth, and total wins for each player
+                val score  = StateEvaluator.evaluate(terminal)
+                if (!StateEvaluator.scoreIsTerminal(score)) {
+                    // ignore cases where a draw or cannot be scored
+                    t++;
+                    continue;
+                }
+                // how many turns/depth has been played?
+                val depthDiff = terminal.turnNumber - startDepth
+                // track winDepths and # wins of maxi and mini player
+                if (score == StateEvaluator.MAXISMISER_BEST_EVAL) {
+                    // maxi player wins
+                    maxiWinsTotal += 1
+                    maxiWinDepthSum += depthDiff
+                } else {
+                    // mini player wins
+                    miniWinsTotal += 1
+                    miniWinDepthSum += depthDiff
+                }
+                t += 1
+            }
+            // finished evaluating this root TIME amount of times
+            println("FINISHED PLAYING $TIMES games for this root")
+            // generate statistics
+            val maxiAverageWinDepth = maxiWinDepthSum / maxiWinsTotal
+            val miniAverageWinDepth = miniWinDepthSum / miniWinsTotal
+            var ourAverageWinDepth = 0.0
+            var ourWinsTotal = 0
+            // determine if we are maxi or mini player
+            val isMaxiPlayer = root.attackingDirection == Vector2D.NORTH
+            // set perspective
+            if (isMaxiPlayer) {
+                ourAverageWinDepth = maxiAverageWinDepth
+                ourWinsTotal = maxiWinsTotal
+            }  else {
+                ourAverageWinDepth = miniAverageWinDepth
+                ourWinsTotal = miniWinsTotal
+            }
+            // interested in finding "proportion of potential wins", "how fast can it win", "how much ahead of enemy it is"
+            // "prop. of wins" = our wins / ( miniWinsTotal +  maxiWinsTotal)
+            val propOfWins = (1.0) * ourWinsTotal / (miniWinsTotal + maxiWinsTotal)
+
+            // "how fast can we win?" =  1 / average OUR winning depth
+            val fastWin = 1 / (ourAverageWinDepth)
+
+            // "how far ahead are we?" = 1 / abs(maxiAverageWinDepth - miniAverageWinDepth); take complement if diff is negative
+            val isAhead = ourAverageWinDepth < (maxiAverageWinDepth + miniAverageWinDepth - ourAverageWinDepth)
+            val catchUpEase= 1 / abs(maxiAverageWinDepth - miniAverageWinDepth)
+            val farAheadValue = if (isAhead) (1-catchUpEase) else (catchUpEase);
+
+            println("# stats")
+            println("we are maximising player (attackNORTH) $isMaxiPlayer")
+            println("maxWins, depth = $maxiWinsTotal, $maxiAverageWinDepth | minWins, depth = $miniWinsTotal, $miniAverageWinDepth")
+            println("propwins: $propOfWins, fastWin: $fastWin, farAheadValue: $farAheadValue")
+
+            return (propOfWins*fastWin*farAheadValue)
         }
 
 
