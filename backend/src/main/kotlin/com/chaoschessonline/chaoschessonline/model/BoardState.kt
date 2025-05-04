@@ -161,4 +161,16 @@ data class BoardState(
         return isTerminalStateForPlayer(attackingDirection) || isTerminalStateForPlayer(attackingDirection.reflectRow())
     }
 
+    /**
+     * Generate next states of a BoardState
+     *
+     * @return List of BoardState
+     */
+    fun generateNextStates():  List<BoardState> {
+        // generate all children
+        val actions = ValidActionGenerator.findAllValidActions(this)
+        val nextStates = actions.map { applyAction(it) }
+        return nextStates
+    }
+
 }
