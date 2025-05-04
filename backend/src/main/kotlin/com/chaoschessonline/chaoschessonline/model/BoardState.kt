@@ -20,9 +20,7 @@ data class BoardState(
     val attackingDirection: Vector2D
 )
 {
-    var children: List<BoardState> = emptyList()
     var eval:Double = 0.0
-    private val attackingPieces:MutableList<Int> = mutableListOf()
 
     companion object {
         fun defaultBoardState() = BoardState(null, Board.defaultBoard(), 0, Vector2D.NORTH)
