@@ -45,9 +45,14 @@ class StateEvaluator {
             return bestEval
         }
 
-
-
-
-
+        /**
+         * Score is terminal (whether +inf or -inf)
+         *
+         * @param score
+         * @return
+         */
+        fun scoreIsTerminal(score: Double): Boolean {
+            return score == Double.NEGATIVE_INFINITY || score == Double.POSITIVE_INFINITY
+        }
     }
 }
