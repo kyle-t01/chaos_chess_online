@@ -5,13 +5,50 @@ import com.chaoschessonline.chaoschessonline.model.BoardState
 import com.chaoschessonline.chaoschessonline.model.ValidActionGenerator
 import java.util.*
 import kotlin.collections.ArrayDeque
+import kotlin.collections.ArrayList
 import kotlin.math.abs
 
 import kotlin.random.Random
 
+/**
+ * Minimax (currently no Minimax implementation, deprecated, for testing purposes only)
+ *
+ * @constructor Create empty Minimax
+ */
+
 class Minimax {
 
     companion object {
+        /**
+         * Is maximising player the current player?
+         *
+         * @param root
+         * @return
+         */
+        fun isMaximisingPlayer(root: BoardState): Boolean {
+            return root.attackingDirection == Vector2D.NORTH
+        }
+
+
+        fun makeNextState(root: BoardState): BoardState {
+            // (1) get all possible child states
+            val nextStates = root.generateNextStates()
+            require(nextStates.size >0) {"makeNextState(): no possible moves, this should not have happened!!"}
+            val nextEvals:MutableList<Double> = mutableListOf()
+            // (2) evaluate each child
+            for (next in nextStates) {
+                val eval = StateEvaluator.evaluateState(next)
+                nextEvals.add(eval)
+            }
+            // (3) get bestScore of the current player
+            val bestScore = if (isMaximisingPlayer(root)) nextEvals.max() else nextEvals.min()
+            // (4) find the nextState that has this bestScore
+            val idx = nextEvals.indexOf(bestScore)
+            val desiredNextState = nextStates[idx]
+            println("nextEvals = $nextEvals, pickedEval = $bestScore, boardState = ${desiredNextState.board}")
+            return desiredNextState
+        }
+
 
         fun makeRandomAction(state: BoardState): BoardState {
             // make a random action, depending on current boardstate
