@@ -82,7 +82,7 @@ class StateEvaluator {
             // keep track best child
             val startDepth = root.turnNumber;
             var t = 0
-            val TIMES = 100
+            val TIMES = 10
             var miniWinDepthSum = 0.0
             var maxiWinDepthSum = 0.0
             var miniWinsTotal = 0
@@ -112,7 +112,7 @@ class StateEvaluator {
                 t += 1
             }
             // finished evaluating this root TIME amount of times
-            println("FINISHED PLAYING $TIMES games for this root")
+            //println("FINISHED PLAYING $TIMES games for this root")
             // generate statistics
             val maxiAverageWinDepth = maxiWinDepthSum / maxiWinsTotal
             val miniAverageWinDepth = miniWinDepthSum / miniWinsTotal
@@ -141,10 +141,9 @@ class StateEvaluator {
             val farAheadValue = if (isAhead) (1-catchUpEase) else (catchUpEase);
 
             println("# stats")
-            println("we are maximising player (attackNORTH) $isMaxiPlayer")
-            println("maxWins, depth = $maxiWinsTotal, $maxiAverageWinDepth | minWins, depth = $miniWinsTotal, $miniAverageWinDepth")
+            println("(maxWins, depth) = $maxiWinsTotal, $maxiAverageWinDepth | (minWins, depth) = $miniWinsTotal, $miniAverageWinDepth")
             println("propwins: $propOfWins, fastWin: $fastWin, farAheadValue: $farAheadValue")
-            return (propOfWins*fastWin*farAheadValue)
+            return (propOfWins*fastWin*farAheadValue) * root.attackingDirection.row
         }
 
         /**
@@ -161,8 +160,10 @@ class StateEvaluator {
             val strategicScore = findStrategicScore(root)
             // combine the two scores
             val tacticalWeight = 1.0
-            val strategicWeight = 1.0
-            val finalScore =(tacticalScore*tacticalWeight) * (strategicScore*strategicWeight)
+            val strategicWeight = 10.0
+            val finalScore =(tacticalScore*tacticalWeight) + (strategicScore*strategicWeight)
+            println("finalscore: $finalScore (weighted), tacticalScore: $tacticalScore, strat: $strategicScore (all unweighted)")
+            println("results in this board: ${root.board}")
             return finalScore
         }
     }
