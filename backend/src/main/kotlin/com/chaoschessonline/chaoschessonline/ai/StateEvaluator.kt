@@ -146,5 +146,24 @@ class StateEvaluator {
             println("propwins: $propOfWins, fastWin: $fastWin, farAheadValue: $farAheadValue")
             return (propOfWins*fastWin*farAheadValue)
         }
+
+        /**
+         * Evaluate state based on combined tactical and strategic score
+         *
+         * @param root
+         * @return
+         */
+        fun evaluateState(root: BoardState): Double {
+            val tacticalScore = findTacticalScore(root)
+            // if tacticalScore is already terminal, return
+            if (scoreIsTerminal(tacticalScore)) return tacticalScore
+            // otherwise, factor in the strategic score
+            val strategicScore = findStrategicScore(root)
+            // combine the two scores
+            val tacticalWeight = 1.0
+            val strategicWeight = 1.0
+            val finalScore =(tacticalScore*tacticalWeight) * (strategicScore*strategicWeight)
+            return finalScore
+        }
     }
 }
