@@ -1,6 +1,6 @@
 package com.chaoschessonline.chaoschessonline.ai
 
-import com.chaoschessonline.chaoschessonline.ai.Minimax.Companion.playRandomlyTilTerminal
+import com.chaoschessonline.chaoschessonline.ai.NextStateMaker.Companion.playRandomlyTilTerminal
 import com.chaoschessonline.chaoschessonline.model.BoardState
 import com.chaoschessonline.chaoschessonline.util.Vector2D
 import kotlin.math.abs

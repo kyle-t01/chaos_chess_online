@@ -3,20 +3,17 @@ package com.chaoschessonline.chaoschessonline.ai
 import com.chaoschessonline.chaoschessonline.util.Vector2D
 import com.chaoschessonline.chaoschessonline.model.BoardState
 import com.chaoschessonline.chaoschessonline.model.ValidActionGenerator
-import java.util.*
 import kotlin.collections.ArrayDeque
-import kotlin.collections.ArrayList
-import kotlin.math.abs
 
 import kotlin.random.Random
 
 /**
- * Minimax (currently no Minimax implementation, deprecated, for testing purposes only)
+ * NextStateMaker
  *
- * @constructor Create empty Minimax
+ * @constructor Create empty NextStateMaker
  */
 
-class Minimax {
+class NextStateMaker {
 
     companion object {
         /**

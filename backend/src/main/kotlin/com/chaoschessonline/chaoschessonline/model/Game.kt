@@ -1,6 +1,6 @@
 package com.chaoschessonline.chaoschessonline.model
 
-import com.chaoschessonline.chaoschessonline.ai.Minimax
+import com.chaoschessonline.chaoschessonline.ai.NextStateMaker
 import com.chaoschessonline.chaoschessonline.util.Vector2D
 
 class Game()
@@ -144,7 +144,7 @@ class Game()
      * @return true when a move can be made
      */
     fun makeNextState(): Boolean {
-        val newState = Minimax.makeNextState(currentState)
+        val newState = NextStateMaker.makeNextState(currentState)
         if (currentState == newState) {
             println("COULD NOT MAKE A RANDOM MOVE for ${currentState.attackingDirection}")
             return false
