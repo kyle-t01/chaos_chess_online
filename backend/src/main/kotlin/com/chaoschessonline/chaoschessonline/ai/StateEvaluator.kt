@@ -86,6 +86,9 @@ class StateEvaluator {
             val startDepth = root.turnNumber;
             var t = 0
             val TIMES = 100
+            val maxiDepths: MutableList<Int> = mutableListOf()
+            val miniDepths: MutableList<Int> = mutableListOf()
+            val isMaxiPlayer = root.attackingDirection == Vector2D.NORTH
             var miniWinDepthSum = 0.0
             var maxiWinDepthSum = 0.0
             var miniWinsTotal = 0
@@ -97,13 +100,11 @@ class StateEvaluator {
                 // collect stats such as average win depth, and total wins for each player
                 val score  = findTacticalScore(terminal)
                 if (!scoreIsTerminal(score)) {
-                    // in cases where board is not a terminal board, then see who has the highest score
+                    // in cases where board is not a terminal board, count as LOSS
                     if (findTacticalScore(terminal) >= 0.0) {
-                        maxiWinsTotal += 1
-                        maxiWinDepthSum += depthDiff
+                        maxiDepths.add(depthDiff)
                     } else {
-                        miniWinsTotal += 1
-                        miniWinDepthSum += depthDiff
+                        miniDepths.add(depthDiff)
                     }
                     //require(false) {"ERROR: somehow ended up here, should be a terminal state! ${terminal.board}"}
                     t++;
@@ -114,46 +115,41 @@ class StateEvaluator {
                 // track winDepths and # wins of maxi and mini player
                 if (score == MAXISMISER_BEST_EVAL) {
                     // maxi player wins
-                    maxiWinsTotal += 1
-                    maxiWinDepthSum += depthDiff
+                    maxiDepths.add(depthDiff)
                 } else {
                     // mini player wins
-                    miniWinsTotal += 1
-                    miniWinDepthSum += depthDiff
+                    miniDepths.add(depthDiff)
                 }
                 t += 1
             }
             // finished evaluating this root TIME amount of times
             //println("FINISHED PLAYING $TIMES games for this root")
             // generate statistics
-            val maxiAverageWinDepth = maxiWinDepthSum / maxiWinsTotal
-            val miniAverageWinDepth = miniWinDepthSum / miniWinsTotal
-            var ourAverageWinDepth = 0.0
-            var enemyAverageWinDepth = 0.0
-            var ourWinsTotal = 0
-            // determine if we are maxi or mini player
-            val isMaxiPlayer = root.attackingDirection == Vector2D.NORTH
+            // find out which Depths is ours and which Depths is the enemy
+            var ourDepths:MutableList<Int> = mutableListOf()
+            var enemyDepths:MutableList<Int> = mutableListOf()
+
             // set perspective (not very elegant, but works for now)
             if (isMaxiPlayer) {
-                ourAverageWinDepth = maxiAverageWinDepth
-                enemyAverageWinDepth = miniAverageWinDepth
-                ourWinsTotal = maxiWinsTotal
+                ourDepths= maxiDepths
+                enemyDepths = miniDepths
             }  else {
-                ourAverageWinDepth = miniAverageWinDepth
-                enemyAverageWinDepth = maxiAverageWinDepth
-                ourWinsTotal = miniWinsTotal
+                ourDepths = miniDepths
+                enemyDepths = maxiDepths
             }
-            println("maxiDepth: $maxiAverageWinDepth, miniDepth: $miniAverageWinDepth")
+
+            val totalWins = maxiDepths.size + miniDepths.size
+
+            println("maxiDepths: ${maxiDepths.average()} [${maxiDepths.size}] win in ${maxiDepths.min()}, miniDepths: ${miniDepths.average()} [${miniDepths.size}] win in ${miniDepths.min()}")
             // interested in finding "proportion of potential wins", "how fast can it win", "how much ahead of enemy it is"
             // "prop. of wins" = our wins / ( miniWinsTotal +  maxiWinsTotal)
-            val propOfWins = (1.0) * ourWinsTotal / (miniWinsTotal + maxiWinsTotal)
+            val propOfWins = (1.0) * ourDepths.size / totalWins
 
             // "how fast can we win?" =  1 / average OUR winning depth (assumes enemy is reallly stupid)
-            val fastWin = 1 / (ourAverageWinDepth)
+            val fastWin = 1 / ourDepths.average()
 
             // "how far ahead are we?"
-            val isAhead = ourAverageWinDepth < enemyAverageWinDepth
-            val depthDiff = enemyAverageWinDepth - ourAverageWinDepth //large is good
+            val depthDiff = enemyDepths.average() - ourDepths.average() //large is good
             val sigmoidGap = 1.0 / (1.0 + exp(0.2*-depthDiff))
             println("where depthDiff is $depthDiff, gives this score: $sigmoidGap")
             val farAheadValue = sigmoidGap
@@ -161,10 +157,8 @@ class StateEvaluator {
             val a = 0.5
             val b = 0.00
             val c = 10
-            println("# stats")
-            println("(maxWins, depth) = $maxiWinsTotal, $maxiAverageWinDepth | (minWins, depth) = $miniWinsTotal, $miniAverageWinDepth")
+            println("# stats fo this child ${root.board} ${root.attackingDirection}")
             println("propwins: $propOfWins, fastWin: $fastWin, farAheadValue: $farAheadValue")
-            println("root attack direction: ${root.attackingDirection}")
             return (a*propOfWins+ b*fastWin+ c*farAheadValue) * root.attackingDirection.row
         }
 
