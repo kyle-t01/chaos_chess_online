@@ -93,15 +93,24 @@ class StateEvaluator {
             while (t < TIMES) {
                 // reach terminal for each child
                 val terminal = playRandomlyTilTerminal(root)
+                val depthDiff = terminal.turnNumber - startDepth
                 // collect stats such as average win depth, and total wins for each player
-                val score  = StateEvaluator.findTacticalScore(terminal)
-                if (!StateEvaluator.scoreIsTerminal(score)) {
-                    // ignore cases where a draw or cannot be scored
+                val score  = findTacticalScore(terminal)
+                if (!scoreIsTerminal(score)) {
+                    // in cases where board is not a terminal board, then see who has the highest score
+                    if (findTacticalScore(terminal) >= 0.0) {
+                        maxiWinsTotal += 1
+                        maxiWinDepthSum += depthDiff
+                    } else {
+                        miniWinsTotal += 1
+                        miniWinDepthSum += depthDiff
+                    }
+                    //require(false) {"ERROR: somehow ended up here, should be a terminal state! ${terminal.board}"}
                     t++;
                     continue;
                 }
                 // how many turns/depth has been played?
-                val depthDiff = terminal.turnNumber - startDepth
+
                 // track winDepths and # wins of maxi and mini player
                 if (score == MAXISMISER_BEST_EVAL) {
                     // maxi player wins
@@ -149,9 +158,9 @@ class StateEvaluator {
             println("where depthDiff is $depthDiff, gives this score: $sigmoidGap")
             val farAheadValue = sigmoidGap
 
-            val a = 5
+            val a = 0.5
             val b = 0.00
-            val c = 100
+            val c = 10
             println("# stats")
             println("(maxWins, depth) = $maxiWinsTotal, $maxiAverageWinDepth | (minWins, depth) = $miniWinsTotal, $miniAverageWinDepth")
             println("propwins: $propOfWins, fastWin: $fastWin, farAheadValue: $farAheadValue")
@@ -168,12 +177,16 @@ class StateEvaluator {
         fun evaluateState(root: BoardState): Double {
             val tacticalScore = findTacticalScore(root)
             // if tacticalScore is already terminal, return
-            if (scoreIsTerminal(tacticalScore)) return tacticalScore
+            if (scoreIsTerminal(tacticalScore)) {
+                println("This is a terminal: $tacticalScore")
+                println("results in this board: ${root.board}")
+                return tacticalScore
+            }
             // otherwise, factor in the strategic score
             val strategicScore = findStrategicScore(root)
             // combine the two scores
             val tacticalWeight = 1.0
-            val strategicWeight = 10
+            val strategicWeight = 1.0
             val finalScore =(tacticalScore*tacticalWeight) + (strategicScore*strategicWeight)
             println("finalscore: $finalScore (weighted), tacticalScore: $tacticalScore, strat: $strategicScore (all unweighted)")
             println("results in this board: ${root.board}")
