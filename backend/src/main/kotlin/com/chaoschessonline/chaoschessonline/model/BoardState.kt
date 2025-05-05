@@ -18,9 +18,8 @@ data class BoardState(
     val board:Board,
     val turnNumber:Int,
     val attackingDirection: Vector2D
-)
-{
-    var eval:Double = 0.0
+) {
+    var eval: Double = 0.0
 
     companion object {
         fun defaultBoardState() = BoardState(null, Board.defaultBoard(), 0, Vector2D.NORTH)
@@ -33,7 +32,7 @@ data class BoardState(
      *
      * @return
      */
-    fun toHashStr(): String{
+    fun toHashStr(): String {
         return board.board.joinToString("") + attackingDirection
     }
 
@@ -46,7 +45,7 @@ data class BoardState(
     fun applyAction(action: Action): BoardState {
         // assumes that we are moving piece within turn
         // TODO: remove require
-        if(isActionOutsideTurn(action)) {
+        if (isActionOutsideTurn(action)) {
             println("ApplyAction(): tried to move a piece not on its turn")
             return this
         }
@@ -73,7 +72,7 @@ data class BoardState(
      * @param to
      * @return
      */
-    fun applyAction(from : Int, to: Int): BoardState {
+    fun applyAction(from: Int, to: Int): BoardState {
         // assuming valid action
         val posFrom = Board.getPositionFromIndex(from)
         val posTo = Board.getPositionFromIndex(to)
@@ -106,7 +105,7 @@ data class BoardState(
      * @param atkDir
      * @return A list of Int indices representing position
      */
-    fun findAttackingPieces(atkDir: Vector2D) : List<Int> = board.findAttackerIndices(atkDir)
+    fun findAttackingPieces(atkDir: Vector2D): List<Int> = board.findAttackerIndices(atkDir)
 
     /**
      * Find current attacking pieces
@@ -115,7 +114,14 @@ data class BoardState(
      *
      * @return
      */
-    fun findCurrentAttackingPieces() :List<Int> = findAttackingPieces(attackingDirection)
+    fun findCurrentAttackingPieces(): List<Int> = findAttackingPieces(attackingDirection)
+
+    /**
+     * Find current enemy pieces
+     *
+     * @return
+     */
+    fun findCurrentEnemyPieces(): List<Int> = findAttackingPieces(attackingDirection.reflectRow())
 
     /**
      * Is terminal state for player
@@ -132,7 +138,7 @@ data class BoardState(
         // (2) no valid moves
         // (3)
         // TODO: when move into new State, generate attacking pieces and defending pieces to speed up calculations
-        val pieces:List<Int> = findAttackingPieces(atkDir)
+        val pieces: List<Int> = findAttackingPieces(atkDir)
         // no pieces left
         if (pieces.size == 0) return true
         // no leader pieces left
@@ -164,7 +170,7 @@ data class BoardState(
      *
      * @return List of BoardState
      */
-    fun generateNextStates():  List<BoardState> {
+    fun generateNextStates(): List<BoardState> {
         // generate all children
         val actions = ValidActionGenerator.findAllValidActions(this)
         val nextStates = actions.map { applyAction(it) }
