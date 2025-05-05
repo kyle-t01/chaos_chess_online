@@ -135,18 +135,21 @@ data class BoardState(
         // terminal state when
         // (0) leader is captured (no leader pieces left)
         // (1) no pieces left
-        // (2) no valid moves
-        // (3)
+        // (2) no valid moves (or next states)
+        // (3) if only leader piece left, automatic loss (leader without army)
         // TODO: when move into new State, generate attacking pieces and defending pieces to speed up calculations
         val pieces: List<Int> = findAttackingPieces(atkDir)
         // no pieces left
-        if (pieces.size == 0) return true
+        if (pieces.isEmpty()) return true
         // no leader pieces left
-        if (board.isLeaderInPositions(pieces) == false) return true
+        if (!board.isLeaderInPositions(pieces)) return true
         // no valid moves
         // for each attacking piece, no legal move
         val validActions = ValidActionGenerator.findAllValidActions(this)
-        if (validActions.size == 0) return true
+        if (validActions.isEmpty()) return true
+
+        // (3) only leader piece left
+        if (pieces.size == 1) return true
 
         return false
 
