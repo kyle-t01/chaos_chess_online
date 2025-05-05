@@ -4,6 +4,9 @@ import com.chaoschessonline.chaoschessonline.ai.NextStateMaker.Companion.playRan
 import com.chaoschessonline.chaoschessonline.model.BoardState
 import com.chaoschessonline.chaoschessonline.util.Vector2D
 import kotlin.math.abs
+import kotlin.math.exp
+import kotlin.math.max
+import kotlin.math.sign
 
 /**
  * State evaluator
@@ -82,7 +85,7 @@ class StateEvaluator {
             // keep track best child
             val startDepth = root.turnNumber;
             var t = 0
-            val TIMES = 10
+            val TIMES = 100
             var miniWinDepthSum = 0.0
             var maxiWinDepthSum = 0.0
             var miniWinsTotal = 0
@@ -117,33 +120,43 @@ class StateEvaluator {
             val maxiAverageWinDepth = maxiWinDepthSum / maxiWinsTotal
             val miniAverageWinDepth = miniWinDepthSum / miniWinsTotal
             var ourAverageWinDepth = 0.0
+            var enemyAverageWinDepth = 0.0
             var ourWinsTotal = 0
             // determine if we are maxi or mini player
             val isMaxiPlayer = root.attackingDirection == Vector2D.NORTH
-            // set perspective
+            // set perspective (not very elegant, but works for now)
             if (isMaxiPlayer) {
                 ourAverageWinDepth = maxiAverageWinDepth
+                enemyAverageWinDepth = miniAverageWinDepth
                 ourWinsTotal = maxiWinsTotal
             }  else {
                 ourAverageWinDepth = miniAverageWinDepth
+                enemyAverageWinDepth = maxiAverageWinDepth
                 ourWinsTotal = miniWinsTotal
             }
+            println("maxiDepth: $maxiAverageWinDepth, miniDepth: $miniAverageWinDepth")
             // interested in finding "proportion of potential wins", "how fast can it win", "how much ahead of enemy it is"
             // "prop. of wins" = our wins / ( miniWinsTotal +  maxiWinsTotal)
             val propOfWins = (1.0) * ourWinsTotal / (miniWinsTotal + maxiWinsTotal)
 
-            // "how fast can we win?" =  1 / average OUR winning depth
+            // "how fast can we win?" =  1 / average OUR winning depth (assumes enemy is reallly stupid)
             val fastWin = 1 / (ourAverageWinDepth)
 
-            // "how far ahead are we?" = 1 / abs(maxiAverageWinDepth - miniAverageWinDepth); take complement if diff is negative
-            val isAhead = ourAverageWinDepth < (maxiAverageWinDepth + miniAverageWinDepth - ourAverageWinDepth)
-            val catchUpEase= 1 / abs(maxiAverageWinDepth - miniAverageWinDepth)
-            val farAheadValue = if (isAhead) (1-catchUpEase) else (catchUpEase);
+            // "how far ahead are we?"
+            val isAhead = ourAverageWinDepth < enemyAverageWinDepth
+            val depthDiff = enemyAverageWinDepth - ourAverageWinDepth //large is good
+            val sigmoidGap = 1.0 / (1.0 + exp(0.2*-depthDiff))
+            println("where depthDiff is $depthDiff, gives this score: $sigmoidGap")
+            val farAheadValue = sigmoidGap
 
+            val a = 5
+            val b = 0.00
+            val c = 100
             println("# stats")
             println("(maxWins, depth) = $maxiWinsTotal, $maxiAverageWinDepth | (minWins, depth) = $miniWinsTotal, $miniAverageWinDepth")
             println("propwins: $propOfWins, fastWin: $fastWin, farAheadValue: $farAheadValue")
-            return (propOfWins*fastWin*farAheadValue) * root.attackingDirection.row
+            println("root attack direction: ${root.attackingDirection}")
+            return (a*propOfWins+ b*fastWin+ c*farAheadValue) * root.attackingDirection.row
         }
 
         /**
@@ -160,7 +173,7 @@ class StateEvaluator {
             val strategicScore = findStrategicScore(root)
             // combine the two scores
             val tacticalWeight = 1.0
-            val strategicWeight = 10.0
+            val strategicWeight = 10
             val finalScore =(tacticalScore*tacticalWeight) + (strategicScore*strategicWeight)
             println("finalscore: $finalScore (weighted), tacticalScore: $tacticalScore, strat: $strategicScore (all unweighted)")
             println("results in this board: ${root.board}")
