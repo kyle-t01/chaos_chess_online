@@ -25,7 +25,7 @@ class StateEvaluator {
          * @return
          */
         fun findTacticalScore(state: BoardState): Double {
-
+            // findTacticalScore is usually called on child of a root node
             // TODO: refactor isTerminalStateForPlayer() to two seperate functions (don't expose state.attackingDir..)
 
             // always evaluate from player's perspective
@@ -43,6 +43,8 @@ class StateEvaluator {
 
             // TODO: for now, just return sum of piece scores
             val score: Double = state.board.findAllPiecesScore()
+
+            // Are we under check from this action? then bad
 
             return score
 
@@ -78,10 +80,6 @@ class StateEvaluator {
             // assume that this is NOT a terminal state
             require(!root.isTerminalState()) {"ERROR: root must not be in a terminal state!!"}
 
-            // TODO: consider for each child, play til terminal multiple times
-            // But in this case, just play each root til terminal X times
-
-
             // keep track best child
             val startDepth = root.turnNumber;
             var t = 0
@@ -89,10 +87,6 @@ class StateEvaluator {
             val maxiDepths: MutableList<Int> = mutableListOf()
             val miniDepths: MutableList<Int> = mutableListOf()
             val isMaxiPlayer = root.attackingDirection == Vector2D.NORTH
-            var miniWinDepthSum = 0.0
-            var maxiWinDepthSum = 0.0
-            var miniWinsTotal = 0
-            var maxiWinsTotal = 0
             while (t < TIMES) {
                 // reach terminal for each child
                 val terminal = playRandomlyTilTerminal(root)
@@ -146,7 +140,7 @@ class StateEvaluator {
             val propOfWins = (1.0) * ourDepths.size / totalWins
 
             // "how fast can we win?" =  1 / average OUR winning depth (assumes enemy is reallly stupid)
-            val fastWin = 1 / ourDepths.average()
+            val fastWin = 1 / (ourDepths.min() + 1.0)
 
             // "how far ahead are we?"
             val depthDiff = enemyDepths.average() - ourDepths.average() //large is good
@@ -154,12 +148,44 @@ class StateEvaluator {
             println("where depthDiff is $depthDiff, gives this score: $sigmoidGap")
             val farAheadValue = sigmoidGap
 
-            val a = 0.5
+            // "naive play": "from playing randomly, how fast could enemy? (we did in fact play randomly)"
+            val enemyFastestWinDepth = enemyDepths.min()
+            val ourFastestWinDepth = ourDepths.min()
+
+            // if by random play, enemy can beat us in 1 turn(s), not safe at all
+            // if we can beat enemy in 1 turns, 100% a safe position to take
+            var safety = 1.0
+            val fastWinDiff = enemyFastestWinDepth - ourFastestWinDepth
+            val sigmoidFast = 1.0 / (1.0 + exp(0.2*-fastWinDiff)) + 0.2
+            println("### ### ###")
+            println("fastWinDiff = $fastWinDiff")
+            println("sigmoidFast (new safety)= $sigmoidFast")
+            safety = Math.min(sigmoidFast, 1.0)
+            if (enemyFastestWinDepth == 1) {
+                // we will lose when enemy moves
+                safety = Double.NEGATIVE_INFINITY
+            }
+            if (ourFastestWinDepth == 1) {
+                // we will win next move
+                safety = Double.POSITIVE_INFINITY
+            }
+
+            // play with enemy fastest win depth later
+
+
+
+
+            println()
+            val a = 0.05
             val b = 0.00
             val c = 10
+            val d = 1.0
             println("# stats fo this child ${root.board} ${root.attackingDirection}")
             println("propwins: $propOfWins, fastWin: $fastWin, farAheadValue: $farAheadValue")
-            return (a*propOfWins+ b*fastWin+ c*farAheadValue) * root.attackingDirection.row
+            println("ourFastWin = $ourFastestWinDepth, enemyFastWin = $enemyFastestWinDepth")
+            println("safety (relative to us): $safety")
+            //println("qwf: $quickWinFactor, safety: $safety")
+            return safety*(a*propOfWins+ b*fastWin+ c*farAheadValue) * root.attackingDirection.row
         }
 
         /**
@@ -179,11 +205,12 @@ class StateEvaluator {
             // otherwise, factor in the strategic score
             val strategicScore = findStrategicScore(root)
             // combine the two scores
-            val tacticalWeight = 1.0
+            val tacticalWeight = 0.00 //tactical weight is "very greedy", punish greed
             val strategicWeight = 1.0
             val finalScore =(tacticalScore*tacticalWeight) + (strategicScore*strategicWeight)
             println("finalscore: $finalScore (weighted), tacticalScore: $tacticalScore, strat: $strategicScore (all unweighted)")
             println("results in this board: ${root.board}")
+            println("### ### ###")
             return finalScore
         }
     }
