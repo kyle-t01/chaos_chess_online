@@ -1,9 +1,6 @@
 package com.chaoschessonline.chaoschessonline.ai
 
-import com.chaoschessonline.chaoschessonline.model.Action
 import com.chaoschessonline.chaoschessonline.model.BoardState
-import com.chaoschessonline.chaoschessonline.model.ValidActionGenerator
-import com.chaoschessonline.chaoschessonline.util.Vector2D
 import kotlin.math.sqrt
 
 /**
@@ -20,19 +17,19 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
 
 
     fun select(): MCTSNode {
-        var curr = this
+        val root = this
+        var curr = root
         // find leaf node
         // while tried every state of this node, and have a next child
         while(curr.untriedStates.isEmpty() && curr.children.isNotEmpty()) {
             // select best child
             curr = curr.children.maxBy { it.uct() }
-
         }
-
         return curr
     }
 
     fun expand(): MCTSNode {
+
         // add/expand children
         // if tried all next states already return ref
         if (untriedStates.isEmpty()) return this
@@ -47,31 +44,29 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         return child
     }
 
-    fun rollout(): Double {
+    fun rollout(root: MCTSNode): Double {
         val terminalState = NextStateMaker.playRandomlyTilTerminal(state)
         val score = StateEvaluator.findTacticalScore(terminalState)
         // get perspective of root
         if (!StateEvaluator.scoreIsTerminal(score)) {
-            // if not terminal score, then likely a draw, count as loss
-            return 0.0
+            // if not terminal score, then likely a draw
+            println("got this score instead $score")
+            println("the board was ${terminalState.board}")
+            return 0.5
         }
 
-        // if this score is best score for the ROLLOUT player, count as ROLLOUT win
-        if (score == StateEvaluator.bestEvalOfPlayer(state.attackingDirection)) {
+        // if this score is best score for the ROLLOUT player, count as ROOT win
+        if (score == StateEvaluator.bestEvalOfPlayer(root.state.attackingDirection)) {
             return 1.0
         }
         return 0.0
     }
 
     fun backPropagate(result: Double) {
-        // backPropagate must be called on the rollout node NOT terminal
         var curr: MCTSNode? = this
-        // perspective
-        val rolloutTeam = this.state.attackingDirection
         while (curr != null) {
             curr.visits += 1
-            val currentTeam = curr.state.attackingDirection
-            curr.wins += if (currentTeam == rolloutTeam) result.toInt() else (1-result).toInt()
+            curr.wins += result.toInt()
             curr = curr.parent
         }
     }
@@ -80,16 +75,27 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         // uct score is always +ve regardless the player at the state
         if (visits == 0) return Double.POSITIVE_INFINITY
         val N = parent?.visits ?: 1
+        val n = visits
+        val w = wins
         val logN = Math.log(N.toDouble())
-        val exploit = wins.toDouble()/visits
-        val explore = EXPLORATION_PARAM * sqrt(logN/N)
+        val exploit = (1.0)*w/n
+        val explore = EXPLORATION_PARAM * sqrt(logN/n)
         return exploit + explore
     }
 
+    fun getBestChild(): MCTSNode {
+        return children.maxBy{ it.visits}
+    }
 
+    fun toState(): BoardState {
+        return state
+    }
+
+    
 
     companion object {
         val EXPLORATION_PARAM = 1.4
+        val EXPLORATION_FACTOR =  1
 
         private fun newNodeFromState(state: BoardState): MCTSNode {
             val nextStates = state.generateNextStates().toMutableList()
@@ -108,19 +114,21 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
                 val expanded = selected.expand()
                 // keep track of rollout node
                 val rolloutNode = expanded
-                val result = rolloutNode.rollout()
+                val result = rolloutNode.rollout(rootNode)
                 rolloutNode.backPropagate(result)
                 t++
             }
 
             println("MCTSRootNode and children...")
-            println("state: ${rootNode.state} ${rootNode.state.attackingDirection}")
+            println("state: ${rootNode.state.board} ${rootNode.state.attackingDirection}")
             println("nodeSTatesL: ${rootNode.wins}/${rootNode.visits}")
 
-
-
+            val best = rootNode.getBestChild()
+            println("best: ${best.state.board} ${best.wins}/${best.visits}")
             return rootNode
         }
+
+
     }
 
 }
