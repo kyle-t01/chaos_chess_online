@@ -32,8 +32,8 @@ class NextStateMaker {
         }
 
         fun makeNextStateMCTS(root: BoardState): BoardState {
-            // hardcode to run 10,000 times for noe
-            val rootNode = MCTSNode.runFromState(root, 10000)
+            // hardcode to run 5000 times for now
+            val rootNode = MCTSNode.runFromState(root, 5000)
             return rootNode.getBestChild().toState()
         }
 
