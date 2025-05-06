@@ -3,6 +3,7 @@ package com.chaoschessonline.chaoschessonline.ai
 import com.chaoschessonline.chaoschessonline.model.Action
 import com.chaoschessonline.chaoschessonline.model.BoardState
 import com.chaoschessonline.chaoschessonline.model.ValidActionGenerator
+import com.chaoschessonline.chaoschessonline.util.Vector2D
 import kotlin.math.sqrt
 
 /**
@@ -23,6 +24,7 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         // find leaf node
         // while tried every state of this node, and have a next child
         while(untriedStates.isEmpty() && children.isNotEmpty()) {
+            // select in a minimax fashion, attack NORTH = maximiser
             curr = curr.children.maxBy { it.uct() }
         }
 
@@ -45,7 +47,6 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
     }
 
     fun rollout(root: MCTSNode): Double {
-        // TODO: rollout needs to be perspective based 1:30[M alram
         val terminalState = NextStateMaker.playRandomlyTilTerminal(state)
         val score = StateEvaluator.findTacticalScore(terminalState)
         // get perspective of root
@@ -54,7 +55,7 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
             return 0.0
         }
 
-        // if this score is best score for the root player, count as win
+        // if this score is best score for the ROOT player, count as root win
         if (score == StateEvaluator.bestEvalOfPlayer(root.state.attackingDirection)) {
             return 1.0
         }
@@ -62,21 +63,24 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
     }
 
     fun backPropagate(result: Double) {
+        // backPropagate must be called on the rollout node NOT terminal
         var curr: MCTSNode? = this
+        // perspective
+        val rolloutTeam = this.state.attackingDirection
         while (curr != null) {
             curr.visits += 1
-            curr.wins += result.toInt()
-            // TODO: updating wins of parent should be perspective based
+            val currentTeam = curr.state.attackingDirection
+            curr.wins += if (currentTeam == rolloutTeam) result.toInt() else (1-result).toInt()
             curr = curr.parent
         }
     }
 
     fun uct(): Double {
+        // uct score is always +ve regardless the player at the state
         if (visits == 0) return Double.POSITIVE_INFINITY
         val N = parent?.visits ?: 1
         val logN = Math.log(N.toDouble())
         val exploit = wins.toDouble()/visits
-        // TODO: exploit should be perspective based
         val explore = EXPLORATION_PARAM * sqrt(logN/N)
         return exploit + explore
     }
