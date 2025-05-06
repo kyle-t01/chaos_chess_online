@@ -10,8 +10,8 @@ import kotlin.math.sqrt
  */
 data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children: MutableList<MCTSNode>, val untriedStates: MutableList<BoardState>)
 {
-    var wins = 0
-    var visits = 0
+    var wins = 0.0
+    var visits = 0.0
 
 
 
@@ -46,34 +46,47 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
 
     fun rollout(root: MCTSNode): Double {
         val terminalState = NextStateMaker.playRandomlyTilTerminal(state)
-        val score = StateEvaluator.findTacticalScore(terminalState)
+        val terminalEval = StateEvaluator.findTacticalScore(terminalState)
+        val loserPlayer = terminalState.attackingDirection
+        val rootPlayer = root.state.attackingDirection
+        // is terminal state caused by rootPlayer?
+        //println("terminalState caused by root player: ${terminalPlayer != rootPlayer}, $score, $terminalScore")
         // get perspective of root
-        if (!StateEvaluator.scoreIsTerminal(score)) {
-            // if not terminal score, then likely a draw
-            println("got this score instead $score")
+        if (!StateEvaluator.scoreIsTerminal(terminalEval)) {
+            // if not terminal score, then likely a draw so not a win
+            println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
+            println("got this termScore instead $terminalEval")
             println("the board was ${terminalState.board}")
-            return 0.5
+            println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
+            return 0.0
         }
 
-        // if this score is best score for the ROLLOUT player, count as ROOT win
-        if (score == StateEvaluator.bestEvalOfPlayer(root.state.attackingDirection)) {
+        val distanceToRoot = terminalState.turnNumber - root.state.turnNumber
+        val bestEvalPlayer = StateEvaluator.bestEvalOfPlayer(rootPlayer)
+        if (bestEvalPlayer == terminalEval) {
+            // TODO: check whether it is an instant win, if so, do something with it
+            // for now, return whether we have won
             return 1.0
         }
+        if (distanceToRoot <= 2) {
+            return Double.NEGATIVE_INFINITY
+        }
+
         return 0.0
     }
 
     fun backPropagate(result: Double) {
         var curr: MCTSNode? = this
         while (curr != null) {
-            curr.visits += 1
-            curr.wins += result.toInt()
+            curr.visits += 1.0
+            curr.wins += result
             curr = curr.parent
         }
     }
 
     fun uct(): Double {
         // uct score is always +ve regardless the player at the state
-        if (visits == 0) return Double.POSITIVE_INFINITY
+        if (visits == 0.0) return Double.POSITIVE_INFINITY
         val N = parent?.visits ?: 1
         val n = visits
         val w = wins
@@ -84,17 +97,31 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
     }
 
     fun getBestChild(): MCTSNode {
-        return children.maxBy{ it.visits}
+        // else next moves are losing or non-losing
+        val nonLosing = children.filter{it.wins != Double.NEGATIVE_INFINITY}
+        if (nonLosing.isEmpty()) return this
+        return nonLosing.maxBy{ it.visits}
     }
 
     fun toState(): BoardState {
         return state
     }
 
-    
+    fun printChildren() {
+        for (c in children) {
+            // print the board, wins, visits, uct()
+            val board = c.state.board
+            val wins = c.wins
+            val visits = c.visits
+            val uctScore = c.uct()
+            println("board: $board")
+            println("wins: $wins, visits: $visits, ratio: ${(1.0)*wins/visits}")
+            println("uct: $uctScore")
+        }
+    }
 
     companion object {
-        val EXPLORATION_PARAM = 1.4
+        val EXPLORATION_PARAM = 1.41
         val EXPLORATION_FACTOR =  1
 
         private fun newNodeFromState(state: BoardState): MCTSNode {
@@ -104,6 +131,7 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         }
 
         fun runFromState(root: BoardState, times: Int): MCTSNode {
+            println("### ### ### MCTS ")
             val rootNode = newNodeFromState(root)
 
             var t = 0
@@ -121,10 +149,14 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
 
             println("MCTSRootNode and children...")
             println("state: ${rootNode.state.board} ${rootNode.state.attackingDirection}")
-            println("nodeSTatesL: ${rootNode.wins}/${rootNode.visits}")
+            println("rootNode: ${rootNode.wins}/${rootNode.visits}")
 
             val best = rootNode.getBestChild()
             println("best: ${best.state.board} ${best.wins}/${best.visits}")
+
+            println("### children")
+            rootNode.printChildren()
+            println("### ### ### END")
             return rootNode
         }
 
