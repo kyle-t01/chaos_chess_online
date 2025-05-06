@@ -23,9 +23,10 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         var curr = this
         // find leaf node
         // while tried every state of this node, and have a next child
-        while(untriedStates.isEmpty() && children.isNotEmpty()) {
-            // select in a minimax fashion, attack NORTH = maximiser
+        while(curr.untriedStates.isEmpty() && curr.children.isNotEmpty()) {
+            // select best child
             curr = curr.children.maxBy { it.uct() }
+
         }
 
         return curr
@@ -46,7 +47,7 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         return child
     }
 
-    fun rollout(root: MCTSNode): Double {
+    fun rollout(): Double {
         val terminalState = NextStateMaker.playRandomlyTilTerminal(state)
         val score = StateEvaluator.findTacticalScore(terminalState)
         // get perspective of root
@@ -55,8 +56,8 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
             return 0.0
         }
 
-        // if this score is best score for the ROOT player, count as root win
-        if (score == StateEvaluator.bestEvalOfPlayer(root.state.attackingDirection)) {
+        // if this score is best score for the ROLLOUT player, count as ROLLOUT win
+        if (score == StateEvaluator.bestEvalOfPlayer(state.attackingDirection)) {
             return 1.0
         }
         return 0.0
@@ -90,15 +91,32 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
     companion object {
         val EXPLORATION_PARAM = 1.4
 
-        private fun newNodefromState(state: BoardState): MCTSNode {
+        private fun newNodeFromState(state: BoardState): MCTSNode {
             val nextStates = state.generateNextStates().toMutableList()
             val newNode = MCTSNode(null, state, mutableListOf(), nextStates)
             return newNode
         }
 
-        fun runFromState(root: BoardState): MCTSNode {
-            val rootNode = newNodefromState(root)
-            //
+        fun runFromState(root: BoardState, times: Int): MCTSNode {
+            val rootNode = newNodeFromState(root)
+
+            var t = 0
+            while (t < times) {
+                // select
+                val selected = rootNode.select()
+                // expand
+                val expanded = selected.expand()
+                // keep track of rollout node
+                val rolloutNode = expanded
+                val result = rolloutNode.rollout()
+                rolloutNode.backPropagate(result)
+                t++
+            }
+
+            println("MCTSRootNode and children...")
+            println("state: ${rootNode.state} ${rootNode.state.attackingDirection}")
+            println("nodeSTatesL: ${rootNode.wins}/${rootNode.visits}")
+
 
 
             return rootNode
