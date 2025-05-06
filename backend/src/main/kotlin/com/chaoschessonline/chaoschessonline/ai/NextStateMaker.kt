@@ -28,6 +28,22 @@ class NextStateMaker {
 
 
         fun makeNextState(root: BoardState): BoardState {
+            return makeNextStateMCTS(root)
+        }
+
+        fun makeNextStateMCTS(root: BoardState): BoardState {
+            // hardcode to run 10,000 times for noe
+            val rootNode = MCTSNode.runFromState(root, 10000)
+            return rootNode.getBestChild().toState()
+        }
+
+        /**
+         * Make next state based on custom agent and evaluation implementation
+         *
+         * @param root
+         * @return
+         */
+        fun makeNextStateCustom(root: BoardState): BoardState {
             // (1) get all possible child states
             val nextStates = root.generateNextStates()
             require(nextStates.size >0) {"makeNextState(): no possible moves, this should not have happened!!"}
@@ -47,7 +63,7 @@ class NextStateMaker {
         }
 
 
-        fun makeRandomAction(state: BoardState): BoardState {
+        fun makeNextStateRandom(state: BoardState): BoardState {
             // make a random action, depending on current boardstate
             val ownPieces = state.findCurrentAttackingPieces()
             if (ownPieces.size == 0) return state;
@@ -82,48 +98,6 @@ class NextStateMaker {
             val newState = state.applyAction(src, dest)
 
             return newState
-        }
-
-        fun makeGreedyAction(state: BoardState): BoardState {
-            // (1) find all possible next states
-            val nextStates = state.generateNextStates()
-
-            // (2) evaluation of states, and find best state
-            println("### makeGreedyAction() ###")
-            // eval from perspective of max or min player
-            val playerDir: Int = state.attackingDirection.row
-            // -1 means attack downwards, north player is min player
-            val maxPlayer: Boolean = (playerDir != -1)
-            val worstEvalOfThisPlayer = if (maxPlayer) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
-            var evalWanted = worstEvalOfThisPlayer
-            for (s in nextStates) {
-                val eval = StateEvaluator.findTacticalScore(s)
-                // TODO: should set evaluation within the boardstate object
-                s.eval = eval
-                println("${s.board} has eval of $eval")
-                if (maxPlayer && (eval > evalWanted)) {
-                    evalWanted = eval
-
-                    continue;
-                }
-                if (!maxPlayer && (eval < evalWanted)) {
-                    evalWanted = eval
-                    continue;
-                }
-            }
-
-            println("The evalWanted is $evalWanted")
-            // now do a linear search
-            for (s in nextStates) {
-                if (s.eval == evalWanted) {
-                    println("### -end- ###")
-                    return s
-                }
-            }
-
-            require(false) { "ERROR, should not have reached here!" }
-            // (4) return that best state
-            return state
         }
 
         /**
