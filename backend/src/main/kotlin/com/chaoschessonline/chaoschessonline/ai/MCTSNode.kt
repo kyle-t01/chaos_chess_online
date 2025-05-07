@@ -120,46 +120,80 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         }
     }
 
+
+    fun run(times: Int): MCTSNode {
+        val rootNode = this
+        // before running MCTS, if there is an immediate win, take it
+        // look at untried States
+        val startTime = System.currentTimeMillis()
+        var immediateWin = false
+        println("<<>>>")
+        println("root player: ${state.attackingDirection}")
+        for (s in untriedStates) {
+            // if on nextState, enemy (player of next state) LOST, then skip MCTS
+            if (s.isTerminalForCurrentPlayer()) {
+                println("next player: ${s.attackingDirection}")
+                println("this board: ${s.board}")
+                // found an immediate win for us, add that as child
+                val winner = MCTSNode(this, s, mutableListOf(), mutableListOf())
+                children.add(winner)
+                immediateWin = true
+                break;
+
+            }
+        }
+        println("<<>>>")
+        // no immediate win, run MCTS
+        if (!immediateWin) {
+            println("run() did not find an immediate win! running MCTS...")
+            rootNode.runMCTS(times)
+        }
+
+        // optional printing of stats
+        println("## MCTSRootNode and children... ##")
+        println("state: ${rootNode.state.board} ${rootNode.state.attackingDirection}")
+        println("rootNode: ${rootNode.wins}/${rootNode.visits}")
+
+        val best = rootNode.getBestChild()
+        println("best: ${best.state.board} ${best.wins}/${best.visits}")
+
+        println("children")
+        rootNode.printChildren()
+        println("### ### ### END")
+        val endTime = System.currentTimeMillis()
+        val totalTime = endTime-startTime
+        println("it took this much time: $totalTime")
+        // return the root reference regardless
+        return this
+    }
+
+    private fun runMCTS(times: Int): MCTSNode {
+        val rootNode = this
+        var t = 0
+        while (t < times) {
+            // select
+            val selected = rootNode.select()
+            // expand
+            val expanded = selected.expand()
+            // keep track of rollout node
+            val rolloutNode = expanded
+            val result = rolloutNode.rollout(rootNode)
+            rolloutNode.backPropagate(result)
+            t++
+        }
+        // return rootNode regardless
+        return rootNode
+    }
+
     companion object {
         val EXPLORATION_PARAM = 1.41
         val EXPLORATION_FACTOR =  1
 
-        private fun newNodeFromState(state: BoardState): MCTSNode {
+        fun fromBoardState(state: BoardState): MCTSNode {
             val nextStates = state.generateNextStates().toMutableList()
             val newNode = MCTSNode(null, state, mutableListOf(), nextStates)
             return newNode
         }
-
-        fun runFromState(root: BoardState, times: Int): MCTSNode {
-            println("### ### ### MCTS ")
-            val rootNode = newNodeFromState(root)
-
-            var t = 0
-            while (t < times) {
-                // select
-                val selected = rootNode.select()
-                // expand
-                val expanded = selected.expand()
-                // keep track of rollout node
-                val rolloutNode = expanded
-                val result = rolloutNode.rollout(rootNode)
-                rolloutNode.backPropagate(result)
-                t++
-            }
-
-            println("MCTSRootNode and children...")
-            println("state: ${rootNode.state.board} ${rootNode.state.attackingDirection}")
-            println("rootNode: ${rootNode.wins}/${rootNode.visits}")
-
-            val best = rootNode.getBestChild()
-            println("best: ${best.state.board} ${best.wins}/${best.visits}")
-
-            println("### children")
-            rootNode.printChildren()
-            println("### ### ### END")
-            return rootNode
-        }
-
 
     }
 
