@@ -316,27 +316,26 @@ class NextStateMaker {
          * @return
          */
         fun playRandomlyTilTerminal(root: BoardState): BoardState {
-            val stack: ArrayDeque<BoardState> = ArrayDeque()
-            stack.addLast(root)
+            // assume that instant wins are already checked
+            var curr = root
             val visited: MutableSet<String> = mutableSetOf()
-
+            //val initialDepth = root.turnNumber
             // explore children of root with sampling
-            while (!stack.isEmpty()) {
-                val curr = stack.removeLast()
-                // if visited continue
-                if (curr.toHashStr() in visited) continue
-
-                // mark this as visited
-                visited.add(curr.toHashStr())
+            while ((curr != null)) {
+                // if terminal return
                 if (curr.isTerminalState()) {
                     return curr
                 }
-                val nextStates = curr.generateNextStates()
+                // mark this as visited
+                visited.add(curr.toHashStr())
+
+                // generate unvisited next states
+                val nextStates = curr.generateNextStates().filter{(it.toHashStr() !in visited)}
+
                 if (nextStates.isEmpty()) return curr
-                val freshStates = nextStates.filter { (it.toHashStr() !in visited) }
-                if (freshStates.isEmpty()) return curr
-                val sampleNext = freshStates.shuffled()[0]
-                stack.addLast(sampleNext)
+
+                val sampleNext = nextStates.shuffled()[0]
+                curr = sampleNext
             }
             return root
         }
