@@ -274,7 +274,7 @@ class NextStateMaker {
                 var depth = 0
                 for (i in 1..100) {
 
-                    val terminal = playRandomlyTilTerminal(bookState)
+                    val terminal = playRandomlyTilTerminal(bookState, 100)
                     //println("${terminal.board} ${terminal.turnNumber} ${StateEvaluator.evaluate(terminal)}")
                     val score = StateEvaluator.findTacticalScore(terminal)
                     if (!(score == Double.NEGATIVE_INFINITY || score == Double.POSITIVE_INFINITY)) {
@@ -310,18 +310,20 @@ class NextStateMaker {
         }
 
         /**
-         * Play randomly til terminal
+         * Play randomly til terminal (or til maxDepth)
          *
          * @param root
+         * @param maxDepth
          * @return
          */
-        fun playRandomlyTilTerminal(root: BoardState): BoardState {
+        fun playRandomlyTilTerminal(root: BoardState, maxDepth: Int): BoardState {
             // assume that instant wins are already checked
             var curr = root
             val visited: MutableSet<String> = mutableSetOf()
-            //val initialDepth = root.turnNumber
+            val initialDepth = root.turnNumber
+            var depth = 0
             // explore children of root with sampling
-            while ((curr != null)) {
+            while ((depth < maxDepth)) {
                 // if terminal return
                 if (curr.isTerminalState()) {
                     return curr
@@ -332,12 +334,13 @@ class NextStateMaker {
                 // generate unvisited next states
                 val nextStates = curr.generateNextStates().filter{(it.toHashStr() !in visited)}
 
-                if (nextStates.isEmpty()) return curr
+                if (nextStates.isEmpty()) break;
 
                 val sampleNext = nextStates.shuffled()[0]
                 curr = sampleNext
+                depth += 1
             }
-            return root
+            return curr
         }
 
         /**
@@ -361,7 +364,7 @@ class NextStateMaker {
                 val miniDepths: MutableList<Int> = mutableListOf()
                 for (plays in 1..100) {
 
-                    val terminal = playRandomlyTilTerminal(next)
+                    val terminal = playRandomlyTilTerminal(next, 100)
                     val score = StateEvaluator.findTacticalScore(terminal)
 
 

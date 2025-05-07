@@ -90,7 +90,7 @@ class StateEvaluator {
             val isMaxiPlayer = root.attackingDirection == Vector2D.NORTH
             while (t < TIMES) {
                 // reach terminal for each child
-                val terminal = playRandomlyTilTerminal(root)
+                val terminal = playRandomlyTilTerminal(root, 100)
                 val depthDiff = terminal.turnNumber - startDepth
                 // collect stats such as average win depth, and total wins for each player
                 val score  = findTacticalScore(terminal)

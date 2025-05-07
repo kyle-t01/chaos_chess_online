@@ -45,7 +45,7 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
     }
 
     fun rollout(root: MCTSNode): Double {
-        val terminalState = NextStateMaker.playRandomlyTilTerminal(state)
+        val terminalState = NextStateMaker.playRandomlyTilTerminal(state, MAX_DEPTH)
         val terminalEval = StateEvaluator.findTacticalScore(terminalState)
         val loserPlayer = terminalState.attackingDirection
         val rootPlayer = root.state.attackingDirection
@@ -64,7 +64,6 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         val distanceToRoot = terminalState.turnNumber - root.state.turnNumber
         val bestEvalPlayer = StateEvaluator.bestEvalOfPlayer(rootPlayer)
         if (bestEvalPlayer == terminalEval) {
-            // TODO: check whether it is an instant win, if so, do something with it
             // for now, return whether we have won
             return 1.0
         }
@@ -188,6 +187,7 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
     companion object {
         val EXPLORATION_PARAM = 1.41
         val EXPLORATION_FACTOR =  1
+        val MAX_DEPTH = 100
 
         fun fromBoardState(state: BoardState): MCTSNode {
             val nextStates = state.generateNextStates().toMutableList()
