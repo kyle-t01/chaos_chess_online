@@ -223,8 +223,8 @@ class StateEvaluator {
          * @param constant
          * @return
          */
-        fun sigmoid(score: Double, factor: Double, constant: Double):Double {
-            return 1.0 / (1.0 + exp(-factor*score)) + constant
+        fun sigmoid(score: Double, factor: Double):Double {
+            return 1.0 / (1.0 + exp(factor*-score))
         }
     }
 }
