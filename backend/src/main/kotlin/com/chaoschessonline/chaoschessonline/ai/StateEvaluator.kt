@@ -32,12 +32,13 @@ class StateEvaluator {
             val playerDir = state.attackingDirection
             val enemyDir = playerDir.reflectRow()
 
+            // TODO: check whether current player lost AND whether previous player did not loss (then enemy wins)
             // check whether current player is lost first
-            if (state.isTerminalStateForPlayer(playerDir)) {
+            if (state.isTerminalForCurrentPlayer()) {
                 return bestEvalOfPlayer(enemyDir)
             }
             // did our enemy lose?
-            if (state.isTerminalStateForPlayer(enemyDir)) {
+            if (state.isTerminalForEnemy()) {
                 return bestEvalOfPlayer(playerDir)
             }
 

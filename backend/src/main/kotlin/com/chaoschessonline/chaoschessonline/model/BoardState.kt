@@ -131,7 +131,7 @@ data class BoardState(
      * @param atkDir
      * @return
      */
-    fun isTerminalStateForPlayer(atkDir: Vector2D): Boolean {
+    private fun isTerminalStateForPlayer(atkDir: Vector2D): Boolean {
         // terminal state when
         // (0) leader is captured (no leader pieces left)
         // (1) no pieces left
@@ -179,5 +179,25 @@ data class BoardState(
         val nextStates = actions.map { applyAction(it) }
         return nextStates
     }
+
+    /**
+     * Is terminal for current
+     *
+     *  is it a terminal state for the player that is about to move?
+     *
+     */
+    fun isTerminalForCurrentPlayer(): Boolean {
+        return isTerminalStateForPlayer(attackingDirection)
+    }
+
+    /**
+     * Is terminal for the player that caused this state?
+     *
+     * @return
+     */
+    fun isTerminalForEnemy(): Boolean {
+        return isTerminalStateForPlayer(attackingDirection.reflectRow())
+    }
+
 
 }
