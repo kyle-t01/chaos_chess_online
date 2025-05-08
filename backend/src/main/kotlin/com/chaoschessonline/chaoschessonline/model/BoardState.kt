@@ -199,5 +199,35 @@ data class BoardState(
         return isTerminalStateForPlayer(attackingDirection.reflectRow())
     }
 
+    fun isLeaderUnderThreat(): Boolean {
+
+        // implemented as: skip player's turn, will enemy cause all leaders to die?
+        // find where enemy can threaten
+        val threats: List<Action> = ValidActionGenerator.findAllEnemyThreats(this)
+        if (threats.isEmpty()) return false
+
+        // find the positions of original leaders
+        val pieces = findCurrentAttackingPieces()
+        val ourLeaders = pieces.filter{board.isLeaderInIndex(it)}.map{Vector2D.fromIndex(it,Board.DEFAULT_DIMENSION)}
+        if (ourLeaders.isEmpty()) return false
+
+        // when threats (enemy actions) are applied, do they threaten all (for now, 1 per side) our leaders?
+        require(ourLeaders.size <= 1) {"LOGIC FOR MULTIPLE LEADERS NOT IMPLEMENTED YET"}
+        val onlyLeader = ourLeaders[0]
+        val leaderUnderThreat = threats.any{it.to == onlyLeader}
+
+        return leaderUnderThreat
+    }
+
+    fun canCaptureEnemyLeader(): Boolean {
+        // idea: can we immediately capture the enemy leader? very similar to isLeaderUnderThreat
+        // canCaptureEnemyLeader() == isLeaderUnderThreat() from enemy's perspective
+        val enemyPerspective = this.flipPlayer()
+        return enemyPerspective.isLeaderUnderThreat()
+    }
+
+    fun flipPlayer(): BoardState {
+        return BoardState(parent, board, turnNumber,attackingDirection.reflectRow() )
+    }
 
 }
