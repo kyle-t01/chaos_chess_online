@@ -181,6 +181,24 @@ data class BoardState(
     }
 
     /**
+     * Generate threat aware next states (rejecting moves that keep us under threat)
+     *
+     * @return
+     */
+    fun generateThreatAwareNextStates(): List<BoardState> {
+        // generate all children
+        val nextStates = generateNextStates()
+        // are we currently under threat?
+        if (!isLeaderUnderThreat()) {
+            // no, so just return nextStates
+            return nextStates
+        }
+        // yes, we are under threat, so reject moves that still keep us under threat
+        val threatAwareStates = nextStates.filter { !it.canCaptureEnemyLeader() }
+        return threatAwareStates
+    }
+
+    /**
      * Is terminal for current
      *
      *  is it a terminal state for the player that is about to move?
@@ -207,8 +225,7 @@ data class BoardState(
         if (threats.isEmpty()) return false
 
         // find the positions of original leaders
-        val pieces = findCurrentAttackingPieces()
-        val ourLeaders = pieces.filter{board.isLeaderInIndex(it)}.map{Vector2D.fromIndex(it,Board.DEFAULT_DIMENSION)}
+        val ourLeaders = findLeaderPositions()
         if (ourLeaders.isEmpty()) return false
 
         // when threats (enemy actions) are applied, do they threaten all (for now, 1 per side) our leaders?
@@ -228,6 +245,17 @@ data class BoardState(
 
     fun flipPlayer(): BoardState {
         return BoardState(parent, board, turnNumber,attackingDirection.reflectRow() )
+    }
+
+    /**
+     * Find leader positions
+     *
+     * @return
+     */
+    fun findLeaderPositions(): List<Vector2D> {
+        val pieces = findCurrentAttackingPieces()
+        val ourLeaders =  pieces.filter{board.isLeaderInIndex(it)}.map{Vector2D.fromIndex(it,Board.DEFAULT_DIMENSION)}
+        return ourLeaders
     }
 
 }
