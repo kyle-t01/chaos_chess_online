@@ -36,7 +36,7 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
 
         // otherwise, use A untriedState to make a new child node
         val nextState = untriedStates.removeLast()
-        val newUntriedStates = nextState.generateNextStates().toMutableList()
+        val newUntriedStates = nextState.generateThreatAwareNextStates().toMutableList()
 
         // make a new MCTS node
         val child = MCTSNode(this, nextState, mutableListOf(), newUntriedStates)
@@ -186,8 +186,7 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
     }
 
     companion object {
-        val EXPLORATION_PARAM = 2.0 // NNED TO PRUNE UNIVISTED UNTRIED STAETS TPP. DONT DO STUPD STATES
-        // FROM LLIST OF UNTRIED STATES -> get curr, if threat and next trheat continue, dont to it, have it as func called prune()
+        val EXPLORATION_PARAM = 2.0
         val EXPLORATION_FACTOR =  1
         val MAX_DEPTH = 7
 

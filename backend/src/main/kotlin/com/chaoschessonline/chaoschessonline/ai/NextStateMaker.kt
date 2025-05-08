@@ -372,31 +372,10 @@ class NextStateMaker {
                 // mark this as visited
                 visited.add(curr.toHashStr())
 
+                // generate unvisited next states (that are threat aware)
+                val unvisited = curr.generateThreatAwareNextStates().filter{(it.toHashStr() !in visited)}
 
-
-                // generate unvisited next states
-                val unvisited = curr.generateNextStates().filter{(it.toHashStr() !in visited)}
-
-                // in the nextStates (from curr's perspective) are we still under threat after moving?
-                // if so, don't move to that state, it means enemy can immediately capture our pieces
-                // are we under threat?
-                val underThreat = curr.isLeaderUnderThreat()
-                var nextStates: List<BoardState> = unvisited
-                if (underThreat) {
-                    println("this is under threat${curr.attackingDirection}")
-                    curr.board.prettyPrint()
-                    // if we were under threat, don't make a stupid move that keeps us under threat
-                    val unThreatenedStates = unvisited.filter{!it.canCaptureEnemyLeader()}
-                    unThreatenedStates.map{it.board.prettyPrint(); it.attackingDirection}
-                    nextStates = unThreatenedStates
-                    if (unThreatenedStates.isEmpty()) {
-                        println("all paths lead to death")
-                        return unvisited[0]
-                    }
-                }
-
-
-                val sampleNext = nextStates.shuffled()[0]
+                val sampleNext = unvisited.shuffled()[0]
                 curr = sampleNext
                 depth += 1
             }
