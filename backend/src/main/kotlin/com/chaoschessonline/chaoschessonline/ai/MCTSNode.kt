@@ -45,30 +45,27 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
     }
 
     fun rollout(root: MCTSNode): Double {
-        val terminalState = NextStateMaker.playRandomlyTilTerminal(state, MAX_DEPTH)
+        val terminalState = NextStateMaker.playRandomlyTilTerminalSmartReply(state, MAX_DEPTH)
         val terminalEval = StateEvaluator.findTacticalScore(terminalState)
-        val loserPlayer = terminalState.attackingDirection
         val rootPlayer = root.state.attackingDirection
         // is terminal state caused by rootPlayer?
         //println("terminalState caused by root player: ${terminalPlayer != rootPlayer}, $score, $terminalScore")
         // get perspective of root
+
         if (!StateEvaluator.scoreIsTerminal(terminalEval)) {
             // if not terminal score, then likely a draw so not a win
-            println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
-            println("got this termScore instead $terminalEval")
-            println("the board was ${terminalState.board}")
-            println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
-            return 0.0
+            //println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
+            val score = StateEvaluator.sigmoid(terminalEval * rootPlayer.row, 0.2)
+            //println("$terminalEval (objective eval), with $score")
+            //println("the board was ${terminalState.board}")
+            //println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
+            return 0.0 //return score later
         }
 
-        val distanceToRoot = terminalState.turnNumber - root.state.turnNumber
         val bestEvalPlayer = StateEvaluator.bestEvalOfPlayer(rootPlayer)
         if (bestEvalPlayer == terminalEval) {
             // for now, return whether we have won
             return 1.0
-        }
-        if (distanceToRoot <= 2) {
-            return Double.NEGATIVE_INFINITY
         }
 
         return 0.0
@@ -155,7 +152,7 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
 
         val best = rootNode.getBestChild()
         println("best: ${best.state.board} ${best.wins}/${best.visits}")
-
+        println(">> besthash: ${best.state.toHashStr()}")
         println("children")
         rootNode.printChildren()
         println("### ### ### END")
@@ -184,10 +181,15 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         return rootNode
     }
 
+    private fun pruneUntriedStates() {
+
+    }
+
     companion object {
-        val EXPLORATION_PARAM = 1.41
+        val EXPLORATION_PARAM = 2.0 // NNED TO PRUNE UNIVISTED UNTRIED STAETS TPP. DONT DO STUPD STATES
+        // FROM LLIST OF UNTRIED STATES -> get curr, if threat and next trheat continue, dont to it, have it as func called prune()
         val EXPLORATION_FACTOR =  1
-        val MAX_DEPTH = 100
+        val MAX_DEPTH = 7
 
         fun fromBoardState(state: BoardState): MCTSNode {
             val nextStates = state.generateNextStates().toMutableList()
