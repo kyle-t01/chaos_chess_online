@@ -29,6 +29,18 @@ class ValidActionGenerator {
         }
 
         /**
+         * Find all enemy threats
+         *
+         * @param state
+         * @return
+         */
+        fun findAllEnemyThreats(state: BoardState): List<Action> {
+            // flip the board
+            val enemyPerspective = state.flipPlayer()
+            return findAllValidActions(enemyPerspective)
+        }
+
+        /**
          * Find possible actions for index (actions = moves + attacks + any other special actions...)
          *
          * @param index
