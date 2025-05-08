@@ -183,6 +183,11 @@ data class Board(
         return false
     }
 
+
+    fun isLeaderInIndex(pos: Int): Boolean {
+        return PieceType.isLeaderPiece(board[pos])
+    }
+
     /**
      * Find sum of piece scores added together
      *
@@ -194,6 +199,31 @@ data class Board(
             score += PieceType.getScore(c)
         }
         return score
+    }
+
+    /**
+     * Pretty print
+     *
+     */
+    fun prettyPrint(){
+        println("######")
+        var c = 0
+        var r = DEFAULT_DIMENSION.row - 1
+        while (r >= 0) {
+            c = 0
+            while (c < Board.DEFAULT_DIMENSION.col) {
+                val i = getIndexFromPosition(Vector2D(c, r))
+                if (board[i] == ' ') {
+                    print('.')
+                } else {
+                    print(board[i])
+                }
+                c++
+            }
+            r--
+            println()
+        }
+        println("######")
     }
 
     companion object {
@@ -220,6 +250,8 @@ data class Board(
             println(arr.size)
             return Board(arr)
         }
+
+
 
         val XIANGQI_PIECES_BOTTOM_HALF: Map<Vector2D, PieceType> = mapOf(
             Vector2D(1,0) to PieceType.HORSE,
