@@ -32,9 +32,8 @@ class NextStateMaker {
         }
 
         fun makeNextStateMCTS(root: BoardState): BoardState {
-            // hardcode to run 5000 times for now
             val rootNode = MCTSNode.fromBoardState(root)
-            rootNode.run(1000)
+            rootNode.run(10000)
             return rootNode.getBestChild().toState()
         }
 
@@ -320,7 +319,6 @@ class NextStateMaker {
             // assume that instant wins are already checked
             var curr = root
             val visited: MutableSet<String> = mutableSetOf()
-            val initialDepth = root.turnNumber
             var depth = 0
             // explore children of root with sampling
             while ((depth < maxDepth)) {
@@ -342,6 +340,69 @@ class NextStateMaker {
             }
             return curr
         }
+
+        fun playRandomlyTilTerminalSmartReply(root: BoardState, maxDepth: Int): BoardState {
+            // "Smart Reply", enemy will never try to play a move that causes immediate loss
+            var curr = root
+            val visited: MutableSet<String> = mutableSetOf()
+            var depth = 0
+
+            val debugHash = " mgsm  c    z zz z      PPPPPPRBKQcRVector2D(col=0, row=-1)"
+            val isDebugState = root.toHashStr() == debugHash
+            // handle root node first
+            if (isDebugState) {
+                println("###>>> playing randomly starting from ${root.board} ${root.attackingDirection}")
+                println("we are playing randomly from the cannon attack bishop position")
+            }
+            // explore children of root with sampling
+            while ((depth < maxDepth)) {
+                if (isDebugState){
+                    println("debuging states: ${curr.board} ${curr.attackingDirection}")
+                }
+                // if terminal return
+                if (curr.isTerminalState()) {
+                    val loser = curr.isTerminalForCurrentPlayer()
+                    //
+                    if (!curr.board.board.contains('K')) {
+                        // look for cannon eat king state
+                        println("curhash  = ${curr.toHashStr()}")
+                    }
+                    break
+                }
+                // mark this as visited
+                visited.add(curr.toHashStr())
+
+
+
+                // generate unvisited next states
+                val unvisited = curr.generateNextStates().filter{(it.toHashStr() !in visited)}
+
+                // in the nextStates (from curr's perspective) are we still under threat after moving?
+                // if so, don't move to that state, it means enemy can immediately capture our pieces
+                // are we under threat?
+                val underThreat = curr.isLeaderUnderThreat()
+                var nextStates: List<BoardState> = unvisited
+                if (underThreat) {
+                    println("this is under threat${curr.attackingDirection}")
+                    curr.board.prettyPrint()
+                    // if we were under threat, don't make a stupid move that keeps us under threat
+                    val unThreatenedStates = unvisited.filter{!it.canCaptureEnemyLeader()}
+                    unThreatenedStates.map{it.board.prettyPrint(); it.attackingDirection}
+                    nextStates = unThreatenedStates
+                    if (unThreatenedStates.isEmpty()) {
+                        println("all paths lead to death")
+                        return unvisited[0]
+                    }
+                }
+
+
+                val sampleNext = nextStates.shuffled()[0]
+                curr = sampleNext
+                depth += 1
+            }
+            return curr
+        }
+
 
         /**
          * Play random simulation (deprecated, for stats purposes only)
