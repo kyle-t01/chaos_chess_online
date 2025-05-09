@@ -347,36 +347,24 @@ class NextStateMaker {
             val visited: MutableSet<String> = mutableSetOf()
             var depth = 0
 
-            val debugHash = " mgsm  c    z zz z      PPPPPPRBKQcRVector2D(col=0, row=-1)"
-            val isDebugState = root.toHashStr() == debugHash
-            // handle root node first
-            if (isDebugState) {
-                println("###>>> playing randomly starting from ${root.board} ${root.attackingDirection}")
-                println("we are playing randomly from the cannon attack bishop position")
-            }
             // explore children of root with sampling
             while ((depth < maxDepth)) {
-                if (isDebugState){
-                    println("debuging states: ${curr.board} ${curr.attackingDirection}")
-                }
                 // if terminal return
                 if (curr.isTerminalState()) {
-                    val loser = curr.isTerminalForCurrentPlayer()
-                    //
                     if (!curr.board.board.contains('K')) {
-                        // look for cannon eat king state
                         println("curhash  = ${curr.toHashStr()}")
                     }
                     break
                 }
                 // mark this as visited
                 visited.add(curr.toHashStr())
-
-                // generate unvisited next states (that are threat aware)
+                // generate unvisited next states (not threat aware)
                 val unvisited = curr.generateThreatAwareNextStates().filter{(it.toHashStr() !in visited)}
+                // if visited everything, we are done
 
-                val sampleNext = unvisited.shuffled()[0]
-                curr = sampleNext
+                if (unvisited.isNotEmpty()) {
+                    curr = unvisited.shuffled()[0]
+                }
                 depth += 1
             }
             return curr
