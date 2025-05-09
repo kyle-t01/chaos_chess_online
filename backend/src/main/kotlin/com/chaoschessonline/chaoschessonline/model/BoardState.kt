@@ -233,4 +233,13 @@ data class BoardState(
         return ourLeaders
     }
 
+    /**
+     * Find enemy leader positions
+     *
+     * @return
+     */
+    fun findEnemyLeaderPositions(): List<Vector2D> {
+        return this.flipPlayer().findLeaderPositions()
+    }
+
 }
