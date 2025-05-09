@@ -16,17 +16,50 @@ class ValidActionGenerator {
             // find attacking pieces
             val pieces = state.findCurrentAttackingPieces()
             // if no leader return empty list
+            val ourLeaderPieces = state.findLeaderPositions()
+
             if (!state.board.isLeaderInPositions(pieces)) return listOf()
             // if only leader piece left
             if (pieces.size == 1) return listOf()
 
+
+            val enemyPieces = state.findCurrentEnemyPieces()
+            val enemyLeaderPieces = state.findEnemyLeaderPositions()
+            require(enemyPieces.isNotEmpty()) {"somehow finding valid actions when enemy leader dead"}
+            // assume that there is only one enemy leader
+            val enemyLeaderPiece = enemyLeaderPieces[0]
+
             // find all possible actions
+            // temporary workaround
+            // TODO: right now converting Ints to Vector2Ds (pieces is List<Int>), Board class should have pre-converted
+            val ourPositions = pieces.map{Vector2D.fromIndex(it, Board.DEFAULT_DIMENSION)}
+            val actions:List<Action> = findActionsFromPosList(ourPositions, state)
+
+            // can we kill enemy leader immediately?
+            val actionsThatKillEnemyLeader = actions.filter{it.to == enemyLeaderPiece}
+            // yes, can win immediately
+            if (actionsThatKillEnemyLeader.isNotEmpty()) return actionsThatKillEnemyLeader
+            // no, can't win immediately
+
+
+            // TODO: actions that result us in threat are disallowed (should be handled by class that deals with state)
+            return actions
+        }
+
+        /**
+         * Find actions from pos list
+         *
+         * @param positions
+         * @param state
+         * @return
+         */
+        private fun findActionsFromPosList(positions: List<Vector2D>, state: BoardState): List<Action> {
             val actions:MutableList<Action> = mutableListOf()
-            for (src in pieces) {
-                val validDests = findPossibleActionsForIndex(src, state)
-                // map List<Int> to List<Action>
+            for (srcPos in positions) {
+                val validDests = findPossibleActionsForIndex(srcPos.getIndex(Board.DEFAULT_DIMENSION), state)
                 for (dest in validDests) {
-                    val action = Action.fromIndices(src, dest, Board.DEFAULT_DIMENSION)
+                    val destPos = Vector2D.fromIndex(dest, Board.DEFAULT_DIMENSION)
+                    val action = Action(srcPos, destPos)
                     actions.add(action)
                 }
             }
