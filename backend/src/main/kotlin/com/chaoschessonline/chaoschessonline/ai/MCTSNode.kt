@@ -45,21 +45,33 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
     }
 
     fun rollout(root: MCTSNode): Double {
-        val terminalState = NextStateMaker.playRandomlyTilTerminalSmartReply(state, MAX_DEPTH)
-        val terminalEval = StateEvaluator.findTacticalScore(terminalState)
         val rootPlayer = root.state.attackingDirection
+        val terminalState = NextStateMaker.playRandomlyTilTerminalSmartReply(state, MAX_DEPTH)
+        val rootEval = StateEvaluator.findTacticalScore(root.state) * rootPlayer.row
+        val rootScore = StateEvaluator.sigmoid(rootEval, 0.2)
+        val terminalEval = StateEvaluator.findTacticalScore(terminalState)
+        val depth = terminalState.turnNumber - root.state.turnNumber
         // is terminal state caused by rootPlayer?
         //println("terminalState caused by root player: ${terminalPlayer != rootPlayer}, $score, $terminalScore")
         // get perspective of root
 
         if (!StateEvaluator.scoreIsTerminal(terminalEval)) {
             // if not terminal score, then likely a draw so not a win
-            //println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
-            val score = StateEvaluator.sigmoid(terminalEval * rootPlayer.row, 0.2)
-            //println("$terminalEval (objective eval), with $score")
-            //println("the board was ${terminalState.board}")
-            //println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
-            return 0.0 //return score later
+            println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
+            println("root player is ${root.state.toHashStr()}")
+            println("$rootEval with $rootScore")
+            val score = StateEvaluator.sigmoid(terminalEval, 0.2)
+            println("the board was ${terminalState.board}")
+            println("$terminalEval with $score")
+            val deltaEval = terminalEval - rootEval
+            val deltaScore = StateEvaluator.sigmoid(deltaEval, 0.2)
+            println("delta is: $deltaEval with $deltaScore")
+            println("depth of rollout is: $depth")
+            val combinedScore = (0.05*deltaScore + 0.95*score) * 0.01 // cap to 0.01
+            println("combinedScore: $combinedScore")
+            println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
+
+            return combinedScore //delta is more important (at most a draw)
         }
 
         val bestEvalPlayer = StateEvaluator.bestEvalOfPlayer(rootPlayer)
@@ -127,9 +139,9 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         println("root player: ${state.attackingDirection}")
         for (s in untriedStates) {
             // if on nextState, enemy (player of next state) LOST, then skip MCTS
-            if (s.isTerminalForCurrentPlayer()) {
+            if (s.isTerminalStateForCurrentPlayer()) {
                 println("next player: ${s.attackingDirection}")
-                println("this board: ${s.board}")
+                println("next board: ${s.board}, which is a win for root player!")
                 // found an immediate win for us, add that as child
                 val winner = MCTSNode(this, s, mutableListOf(), mutableListOf())
                 children.add(winner)
@@ -186,12 +198,12 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
     }
 
     companion object {
-        val EXPLORATION_PARAM = 2.0
+        val EXPLORATION_PARAM = 1.5
         val EXPLORATION_FACTOR =  1
         val MAX_DEPTH = 7
 
         fun fromBoardState(state: BoardState): MCTSNode {
-            val nextStates = state.generateNextStates().toMutableList()
+            val nextStates = state.generateThreatAwareNextStates().toMutableList()
             val newNode = MCTSNode(null, state, mutableListOf(), nextStates)
             return newNode
         }
