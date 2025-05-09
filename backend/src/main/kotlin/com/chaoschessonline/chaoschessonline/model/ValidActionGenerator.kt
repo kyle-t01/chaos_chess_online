@@ -15,6 +15,11 @@ class ValidActionGenerator {
         fun findAllValidActions(state: BoardState): List<Action> {
             // find attacking pieces
             val pieces = state.findCurrentAttackingPieces()
+            // if no leader return empty list
+            if (!state.board.isLeaderInPositions(pieces)) return listOf()
+            // if only leader piece left
+            if (pieces.size == 1) return listOf()
+
             // find all possible actions
             val actions:MutableList<Action> = mutableListOf()
             for (src in pieces) {
