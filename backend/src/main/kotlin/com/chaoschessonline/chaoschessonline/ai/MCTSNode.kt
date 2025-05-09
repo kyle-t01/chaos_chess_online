@@ -67,7 +67,7 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
             val deltaScore = StateEvaluator.sigmoid(deltaEval, 0.2)
             println("delta is: $deltaEval with $deltaScore")
             println("depth of rollout is: $depth")
-            val combinedScore = (0.05*deltaScore + 0.95*score) * 0.01 // cap to 0.01
+            val combinedScore = (0.25*deltaScore + 0.75*score) * 0.01 // cap to 0.01
             println("combinedScore: $combinedScore")
             println(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<")
 
