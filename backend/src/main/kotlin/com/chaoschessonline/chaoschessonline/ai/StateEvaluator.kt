@@ -26,19 +26,17 @@ class StateEvaluator {
          */
         fun findTacticalScore(state: BoardState): Double {
             // findTacticalScore is usually called on child of a root node
-            // TODO: refactor isTerminalStateForPlayer() to two seperate functions (don't expose state.attackingDir..)
 
             // always evaluate from player's perspective
             val playerDir = state.attackingDirection
             val enemyDir = playerDir.reflectRow()
 
-            // TODO: check whether current player lost AND whether previous player did not loss (then enemy wins)
             // check whether current player is lost first
-            if (state.isTerminalForCurrentPlayer()) {
+            if (state.isTerminalStateForCurrentPlayer()) {
                 return bestEvalOfPlayer(enemyDir)
             }
             // did our enemy lose?
-            if (state.isTerminalForEnemy()) {
+            if (state.flipPlayer().isTerminalStateForCurrentPlayer()) {
                 return bestEvalOfPlayer(playerDir)
             }
 
