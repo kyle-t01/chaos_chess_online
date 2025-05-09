@@ -18,6 +18,7 @@ data class BoardState(
     val board:Board,
     val turnNumber:Int,
     val attackingDirection: Vector2D
+    // possibly keep track where this state (if non-terminal) leads to a guaranteed win or loss
 ) {
     var eval: Double = 0.0
 
@@ -25,6 +26,32 @@ data class BoardState(
         fun defaultBoardState() = BoardState(null, Board.defaultBoard(), 0, Vector2D.NORTH)
         fun northStartBoardState() = BoardState(null, Board.defaultBoard(), 0, Vector2D.SOUTH)
         fun testBoardState(board: Board, atkDir: Vector2D) = BoardState(null, board, 0, atkDir)
+        fun debugBoardState() = BoardState(null,  Board.fromString(" , m,  , s, m,  ,  ,  , g, c,  ,  , z, P, z, z,  , z,  ,  , P,  ,  ,  , P,  ,  , P, P, P, R, c, K, Q, B, R"), 0, Vector2D.NORTH)
+
+        /**
+         * Filter threat aware subset
+         *
+         * @param nextStates
+         * @return threatAware BoardStates (may be empty)
+         */
+        fun filterThreatAwareSubset(nextStates: List<BoardState>): List<BoardState> {
+            // find subset that are threat aware
+            val canWinDespiteThreat = nextStates.any{!it.canCaptureEnemyLeader() && it.findLeaderPositions().isEmpty()}
+            // reject moves that will cause it to lose, but don't reject moves that will cause it to win
+            val threatAware = nextStates.filter { !it.canCaptureEnemyLeader() || it.findLeaderPositions().isEmpty() }
+
+            if (canWinDespiteThreat) {
+                println("...")
+                println("canWinDespiteThreat:  $canWinDespiteThreat")
+                println("parent that was threatened but can win:")
+                threatAware[0].parent?.board?.prettyPrint()
+                threatAware.map { it.board.prettyPrint() }
+                println("...")
+            }
+
+            return threatAware
+        }
+
     }
 
     /**
@@ -123,41 +150,6 @@ data class BoardState(
      */
     fun findCurrentEnemyPieces(): List<Int> = findAttackingPieces(attackingDirection.reflectRow())
 
-    /**
-     * Is terminal state for player
-     *
-     * terminal state when: no pieces left, no leader left, no valid moves
-     *
-     * @param atkDir
-     * @return
-     */
-    private fun isTerminalStateForPlayer(atkDir: Vector2D): Boolean {
-        // terminal state when
-        // (0) leader is captured (no leader pieces left)
-        // (1) no pieces left
-        // (2) no valid moves (or next states)
-        // (3) if only leader piece left, automatic loss (leader without army)
-        // TODO: when move into new State, generate attacking pieces and defending pieces to speed up calculations
-        val pieces: List<Int> = findAttackingPieces(atkDir)
-        // no pieces left
-        if (pieces.isEmpty()) return true
-        // no leader pieces left
-        if (!board.isLeaderInPositions(pieces)) return true
-        // no valid moves
-        // for each attacking piece, no legal move
-        val validActions = ValidActionGenerator.findAllValidActions(this)
-        if (validActions.isEmpty()) return true
-
-        // (3) only leader piece left
-        if (pieces.size == 1) return true
-
-        return false
-
-        // future implementations
-        // (1) moved x amount of turns without a capture
-        // (2) 3-fold repetition
-        // (3) this is xth turn, turn limit reached
-    }
 
     /**
      * Is terminal state (when either player is in a terminal state)
@@ -165,8 +157,25 @@ data class BoardState(
      * @return
      */
     fun isTerminalState(): Boolean {
-        return isTerminalStateForPlayer(attackingDirection) || isTerminalStateForPlayer(attackingDirection.reflectRow())
+        val enemyState = this.flipPlayer()
+        return isTerminalStateForCurrentPlayer() || enemyState.isTerminalStateForCurrentPlayer()
     }
+
+    /**
+     * Is terminal state for current player
+     *
+     * @return
+     */
+    fun isTerminalStateForCurrentPlayer(): Boolean {
+        // no valid moves left (nextStates)
+        val nextStates = generateNextStates()
+        if (nextStates.isEmpty()) return true
+        // no valid threat-aware moves (won't move in way that allows leader to be captured)
+        val threatAwareNextStates = BoardState.filterThreatAwareSubset(nextStates)
+        if (threatAwareNextStates.isEmpty()) return true
+        return false
+    }
+
 
     /**
      * Generate next states of a BoardState
@@ -188,34 +197,11 @@ data class BoardState(
     fun generateThreatAwareNextStates(): List<BoardState> {
         // generate all children
         val nextStates = generateNextStates()
-        // are we currently under threat?
-        if (!isLeaderUnderThreat()) {
-            // no, so just return nextStates
-            return nextStates
-        }
-        // yes, we are under threat, so reject moves that still keep us under threat
-        val threatAwareStates = nextStates.filter { !it.canCaptureEnemyLeader() }
+        val threatAwareStates = filterThreatAwareSubset(nextStates)
+        // if regardless whether empty, return
         return threatAwareStates
     }
 
-    /**
-     * Is terminal for current
-     *
-     *  is it a terminal state for the player that is about to move?
-     *
-     */
-    fun isTerminalForCurrentPlayer(): Boolean {
-        return isTerminalStateForPlayer(attackingDirection)
-    }
-
-    /**
-     * Is terminal for the player that caused this state?
-     *
-     * @return
-     */
-    fun isTerminalForEnemy(): Boolean {
-        return isTerminalStateForPlayer(attackingDirection.reflectRow())
-    }
 
     fun isLeaderUnderThreat(): Boolean {
 
