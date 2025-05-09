@@ -35,20 +35,8 @@ data class BoardState(
          * @return threatAware BoardStates (may be empty)
          */
         fun filterThreatAwareSubset(nextStates: List<BoardState>): List<BoardState> {
-            // find subset that are threat aware
-            val canWinDespiteThreat = nextStates.any{!it.canCaptureEnemyLeader() && it.findLeaderPositions().isEmpty()}
             // reject moves that will cause it to lose, but don't reject moves that will cause it to win
-            val threatAware = nextStates.filter { !it.canCaptureEnemyLeader() || it.findLeaderPositions().isEmpty() }
-
-            if (canWinDespiteThreat) {
-                println("...")
-                println("canWinDespiteThreat:  $canWinDespiteThreat")
-                println("parent that was threatened but can win:")
-                threatAware[0].parent?.board?.prettyPrint()
-                threatAware.map { it.board.prettyPrint() }
-                println("...")
-            }
-
+            val threatAware = nextStates.filter { !it.canCaptureEnemyLeader()}
             return threatAware
         }
 
@@ -179,6 +167,7 @@ data class BoardState(
 
     /**
      * Generate next states of a BoardState
+     *
      *
      * @return List of BoardState
      */
