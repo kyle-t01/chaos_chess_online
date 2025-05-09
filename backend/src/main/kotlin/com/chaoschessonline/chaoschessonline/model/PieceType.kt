@@ -156,7 +156,7 @@ enum class PieceType {
                 }
 
                 'C' -> {
-                    score = 5.0
+                    score = 8.0
                 }
                 ' ', '.' -> {
                     score = 0.0 // empty space
