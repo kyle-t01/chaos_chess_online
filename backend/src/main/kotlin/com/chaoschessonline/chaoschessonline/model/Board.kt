@@ -11,31 +11,18 @@ import kotlin.reflect.jvm.internal.impl.incremental.components.Position
  * @constructor Create empty Board
  */
 data class Board(
-    val board: Array<Char> = arrayOf()
+    val board: Array<Char> = arrayOf(),
+    val dimension: Vector2D
 )
 {
-
-
-
-    /**
+     /**
      * Get piece char (assume position is not out of bounds)
      *
      * @param position
      * @return
      */
     fun getPieceChar(position: Vector2D): Char {
-        assert(positionInsideBounds(position))
-        return board[getIndexFromPosition(position)]
-    }
-
-    /**
-     * Get piece char using an Int position
-     *
-     * @param position
-     * @return
-     */
-    fun getPieceChar(position: Int): Char {
-        return board[position]
+        return board[position.toIndex(dimension)]
     }
 
     /**
@@ -63,7 +50,7 @@ data class Board(
         newBoardArr[from] = ' '
         //println("(1) Moving [${from}] ${board[from]} TOWARDS [${to}] ${board[to]}..." )
         //println("(2) Result [${from}] ${newBoardArr[from]} :  [${to}] ${newBoardArr[to]}")
-        return Board(newBoardArr)
+        return Board(newBoardArr, dimension)
     }
 
 
@@ -90,7 +77,7 @@ data class Board(
      */
     fun isEnemyPos(src:Vector2D, dest:Vector2D):Boolean {
         require(positionInsideBounds(src) && positionInsideBounds(dest)) {"ERROR: src or dest must be within bounds"}
-        return isEnemyPos(Board.getIndexFromPosition(src), Board.getIndexFromPosition(dest))
+        return isEnemyIdx(getIndexFromPosition(src), getIndexFromPosition(dest))
     }
 
     /**
@@ -100,7 +87,7 @@ data class Board(
      * @param dest
      * @return
      */
-    fun isEnemyPos(src:Int, dest:Int): Boolean {
+    private fun isEnemyIdx(src:Int, dest:Int): Boolean {
         return PieceType.isEnemy(board[src], board[dest])
     }
 
@@ -112,8 +99,7 @@ data class Board(
      * @return
      */
     fun isAllyPos(src: Vector2D, dest:Vector2D):Boolean {
-        require(positionInsideBounds(src) && positionInsideBounds(dest)) {"ERROR: src or dest must be within bounds"}
-        return isAllyPos(Board.getIndexFromPosition(src), Board.getIndexFromPosition(dest))
+        return isAllyIdx(getIndexFromPosition(src), getIndexFromPosition(dest))
     }
 
     /**
@@ -123,7 +109,7 @@ data class Board(
      * @param dest
      * @return
      */
-    fun isAllyPos(src: Int, dest:Int):Boolean {
+    private fun isAllyIdx(src: Int, dest:Int):Boolean {
         return PieceType.isAlly(board[src], board[dest])
     }
 
@@ -133,37 +119,29 @@ data class Board(
      * @param dest
      * @return
      */
-    fun isEmptyPos(dest:Vector2D):Boolean {
-        require(positionInsideBounds(dest))
-        return isEmptyPos(Board.getIndexFromPosition(dest))
+    fun isEmptyPos(pos:Vector2D):Boolean {
+        return getPieceChar(pos) == ' '
     }
 
     /**
-     * Is empty pos
-     *
-     * @param dest
-     * @return
-     */
-    fun isEmptyPos(dest:Int):Boolean {
-        return board[dest] == ' '
-    }
-
-    /**
-     * Find indices of an attacking player
+     * Find positions of atkDir that represents an attacking direction
      *
      * @param atkDir
      * @return
      */
-    fun findAttackerIndices(atkDir: Vector2D): List<Int> {
-        val playerIndices:MutableList<Int> = mutableListOf()
+    fun findPositionsOfAtkDir(atkDir: Vector2D): List<Vector2D> {
+        val pos: MutableList<Vector2D> = mutableListOf()
         var idx = 0
-        for (c in board) {
-            if (c != ' ' && PieceType.isPieceOfAttacker(c, atkDir)) {
-                playerIndices.add(idx)
+        while (idx < dimension.findSize()) {
+            val c = board[idx]
+            if (c!= ' ' && PieceType.isPieceOfAttacker(c, atkDir)) {
+                // piece of attacking direction, so add it to the list
+                pos.add(Vector2D.fromIndex(idx, dimension))
             }
-            idx += 1
+
+            idx++
         }
-        return playerIndices
+        return pos
     }
 
     /**
@@ -174,18 +152,26 @@ data class Board(
      * @param positionList
      * @return
      */
-    fun isLeaderInPositions(positionList: List<Int>): Boolean {
-        for (i in positionList) {
-            if (PieceType.isLeaderPiece(board[i])) {
-                return true
-            }
-        }
-        return false
+    fun isLeaderInPositions(positionList: List<Vector2D>): Boolean {
+        return findLeaderFromPositions(positionList) != null
     }
 
 
-    fun isLeaderInIndex(pos: Int): Boolean {
-        return PieceType.isLeaderPiece(board[pos])
+    fun isLeaderInPos(pos: Vector2D): Boolean {
+        return PieceType.isLeaderPiece(this.getPieceChar(pos))
+    }
+
+    /**
+     * Filter Leader Position (ASSUMING ONLY ONE LEADER PIECE)
+     *
+     * @param positionList
+     * @return
+     */
+    fun findLeaderFromPositions(positionList: List<Vector2D>): Vector2D? {
+        // we are always assuming that there is only ONE leader
+        // do linear search
+        val leaderPos = positionList.find { isLeaderInPos(it) }
+        return leaderPos
     }
 
     /**
@@ -208,10 +194,10 @@ data class Board(
     fun prettyPrint(){
         println("######")
         var c = 0
-        var r = DEFAULT_DIMENSION.row - 1
+        var r = dimension.row - 1
         while (r >= 0) {
             c = 0
-            while (c < Board.DEFAULT_DIMENSION.col) {
+            while (c < dimension.col) {
                 val i = getIndexFromPosition(Vector2D(c, r))
                 if (board[i] == ' ') {
                     print('.')
@@ -226,29 +212,50 @@ data class Board(
         println("######")
     }
 
+    fun getIndexFromPosition(position: Vector2D): Int {
+        //require(positionInsideBounds(position)) {"INCORRECT USAGE: position must be within board"}
+        return position.col + position.row * dimension.col
+    }
+
+    fun getPositionFromIndex(index: Int): Vector2D {
+        val col:Int = index % dimension.col
+        val row:Int =  index / dimension.row
+        return Vector2D(col, row)
+    }
+
+    /**
+     * Position inside bounds
+     *
+     * @param pos
+     * @return
+     */
+    fun positionInsideBounds(pos: Vector2D):Boolean {
+        return pos.withinBounds(dimension)
+    }
+
     companion object {
         fun defaultBoard():Board {
-            val size = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
-            val array:Array<Char> = Array(size){' '}
+            val boardDim = DEFAULT_6X6_DIMENSION
+            val numPieces = boardDim.findSize()
+            val array:Array<Char> = Array(numPieces){' '}
             // insert xiangqi pieces to board (south player)
             for (pos in XIANGQI_PIECES_BOTTOM_HALF.keys) {
-                val i = getIndexFromPosition(pos)
+                val i = pos.toIndex(boardDim)
                 val c = PieceType.toChar(XIANGQI_PIECES_BOTTOM_HALF[pos]!!, Vector2D.NORTH)
                 array[i] = c
             }
             // insert chess pieces to board (north player)
             for (pos in CHESS_PIECES_TOP_HALF.keys) {
-                val i = getIndexFromPosition(pos)
+                val i = pos.toIndex(boardDim)
                 val c = PieceType.toChar(CHESS_PIECES_TOP_HALF[pos]!!, Vector2D.SOUTH)
                 array[i] = c
             }
-            return Board(array)
+            return Board(array, boardDim)
         }
 
-        fun fromString(str: String): Board {
+        fun fromString(str: String, dim: Vector2D): Board {
             val arr = str.split(",").map { it.trim().firstOrNull() ?: ' ' }.toTypedArray()
-            println(arr.size)
-            return Board(arr)
+            return Board(arr, dim)
         }
 
 
@@ -281,52 +288,10 @@ data class Board(
             Vector2D(5,4) to PieceType.PAWN,
         )
 
-        val DEFAULT_DIMENSION = Vector2D(6,6)
-        val DEFAULT_SIZE = DEFAULT_DIMENSION.col * DEFAULT_DIMENSION.row
+        private val DEFAULT_6X6_DIMENSION = Vector2D(6,6)
 
-        fun getIndexFromPosition(position: Vector2D): Int {
-            //require(positionInsideBounds(position)) {"INCORRECT USAGE: position must be within board"}
-            return position.col + position.row * DEFAULT_DIMENSION.col
-        }
 
-        fun getPositionFromIndex(index: Int): Vector2D {
-            val col:Int = index % DEFAULT_DIMENSION.col
-            val row:Int =  index / DEFAULT_DIMENSION.row
-            return Vector2D(col, row)
-        }
 
-        /**
-         * Get index from applying vector (DANGEROUS)
-         *
-         * Assumes that vector will not lead it out of bounds
-         *
-         * @param index
-         * @param vector
-         * @return result index
-         */
-        fun getIndexFromApplyingVector(index: Int, vector: Vector2D): Int {
-            val currPos = getPositionFromIndex(index)
-            val resultantPos = currPos + vector
-            val resultantIndex = getIndexFromPosition(resultantPos)
-            return resultantIndex
-        }
-
-        /**
-         * Position inside bounds
-         *
-         * @param pos
-         * @return
-         */
-        fun positionInsideBounds(pos: Vector2D):Boolean {
-            val withinRow:Boolean = pos.row >= 0 && pos.row < Board.DEFAULT_DIMENSION.row
-            val withinCol:Boolean = pos.col >= 0 && pos.col < Board.DEFAULT_DIMENSION.col
-            return withinCol && withinRow
-        }
-
-        fun isPositionInNorth(pos: Vector2D):Boolean {
-            val rowsPerSide = Board.DEFAULT_DIMENSION.row / 2
-            return pos.row + 1 > rowsPerSide
-        }
     }
 
 
