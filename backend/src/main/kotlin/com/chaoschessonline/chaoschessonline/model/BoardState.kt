@@ -1,5 +1,6 @@
 package com.chaoschessonline.chaoschessonline.model
 
+import com.chaoschessonline.chaoschessonline.ai.StateEvaluator
 import com.chaoschessonline.chaoschessonline.util.Vector2D
 
 /**
@@ -24,9 +25,7 @@ data class BoardState(
 
     companion object {
         fun defaultBoardState() = BoardState(null, Board.defaultBoard(), 0, Vector2D.NORTH)
-        fun northStartBoardState() = BoardState(null, Board.defaultBoard(), 0, Vector2D.SOUTH)
         fun testBoardState(board: Board, atkDir: Vector2D) = BoardState(null, board, 0, atkDir)
-        fun debugBoardState() = BoardState(null,  Board.fromString(" , m,  , s, m,  ,  ,  , g, c,  ,  , z, P, z, z,  , z,  ,  , P,  ,  ,  , P,  ,  , P, P, P, R, c, K, Q, B, R"), 0, Vector2D.NORTH)
 
         /**
          * Filter threat aware subset
@@ -75,24 +74,7 @@ data class BoardState(
         // setup the newState
         val newState = BoardState(parent, newBoard, newTurnNum, newAttackDir)
         // TODO: newState.attackingPieces = add findCurrentAttackingPieces()
-
-
         return newState
-    }
-
-    /**
-     * Apply action using Int positions
-     *
-     * @param from
-     * @param to
-     * @return
-     */
-    fun applyAction(from: Int, to: Int): BoardState {
-        // assuming valid action
-        val posFrom = Board.getPositionFromIndex(from)
-        val posTo = Board.getPositionFromIndex(to)
-        val action = Action(posFrom, posTo)
-        return applyAction(action)
     }
 
     /**
@@ -104,13 +86,11 @@ data class BoardState(
      * @return boolean
      */
     fun isActionOutsideTurn(action: Action): Boolean {
-
         //println("###isActionOutsideTurn###")
         //println(board)
         //println(attackingDirection)
         //println(action)
         //println("######")
-
         return board.findAttackDirectionOfPos(action.from) != attackingDirection
     }
 
@@ -118,9 +98,9 @@ data class BoardState(
      * Find attacking pieces
      *
      * @param atkDir
-     * @return A list of Int indices representing position
+     * @return A list of Vector2D representing positions
      */
-    fun findAttackingPieces(atkDir: Vector2D): List<Int> = board.findAttackerIndices(atkDir)
+    private fun findAttackingPieces(atkDir: Vector2D): List<Vector2D> = board.findPositionsOfAtkDir(atkDir)
 
     /**
      * Find current attacking pieces
@@ -129,14 +109,14 @@ data class BoardState(
      *
      * @return
      */
-    fun findCurrentAttackingPieces(): List<Int> = findAttackingPieces(attackingDirection)
+    fun findCurrentAttackingPieces(): List<Vector2D> = findAttackingPieces(attackingDirection)
 
     /**
      * Find current enemy pieces
      *
      * @return
      */
-    fun findCurrentEnemyPieces(): List<Int> = findAttackingPieces(attackingDirection.reflectRow())
+    fun findCurrentEnemyPieces(): List<Vector2D> = findAttackingPieces(attackingDirection.reflectRow())
 
 
     /**
@@ -145,25 +125,28 @@ data class BoardState(
      * @return
      */
     fun isTerminalState(): Boolean {
-        val enemyState = this.flipPlayer()
-        return isTerminalStateForCurrentPlayer() || enemyState.isTerminalStateForCurrentPlayer()
+        return hasPlayerLost() || hasEnemyLost()
     }
 
-    /**
-     * Is terminal state for current player
-     *
-     * @return
-     */
-    fun isTerminalStateForCurrentPlayer(): Boolean {
-        // no valid moves left (nextStates)
+
+    fun hasPlayerLost(): Boolean {
+        // no more valid moves
+        // assume that the enemy hasn't lost first
+        // are we able to make any valid moves? (includes moves that allows current leader ot be captured)
         val nextStates = generateNextStates()
         if (nextStates.isEmpty()) return true
-        // no valid threat-aware moves (won't move in way that allows leader to be captured)
-        val threatAwareNextStates = BoardState.filterThreatAwareSubset(nextStates)
+
+        // make moves that don't keep our leader in threat
+        val threatAwareNextStates = filterThreatAwareSubset(nextStates)
         if (threatAwareNextStates.isEmpty()) return true
+
         return false
     }
 
+    fun hasEnemyLost(): Boolean  {
+        val enemyState = this.flipPlayer()
+        return enemyState.hasPlayerLost()
+    }
 
     /**
      * Generate next states of a BoardState
@@ -186,27 +169,31 @@ data class BoardState(
     fun generateThreatAwareNextStates(): List<BoardState> {
         // generate all children
         val nextStates = generateNextStates()
+        // sanity check: if we can win immediately, filterThreatAware should not reject that state
+
         val threatAwareStates = filterThreatAwareSubset(nextStates)
         // if regardless whether empty, return
         return threatAwareStates
     }
 
 
-    fun isLeaderUnderThreat(): Boolean {
+    fun isAbleToCaptureEnemyLeader(): Boolean {
+        // are we able to immediately capture enemy leader?
 
+        return true
+    }
+
+    fun isLeaderUnderThreat(): Boolean {
         // implemented as: skip player's turn, will enemy cause all leaders to die?
         // find where enemy can threaten
         val threats: List<Action> = ValidActionGenerator.findAllEnemyThreats(this)
         if (threats.isEmpty()) return false
 
         // find the positions of original leaders
-        val ourLeaders = findLeaderPositions()
-        if (ourLeaders.isEmpty()) return false
-
-        // when threats (enemy actions) are applied, do they threaten all (for now, 1 per side) our leaders?
-        require(ourLeaders.size <= 1) {"LOGIC FOR MULTIPLE LEADERS NOT IMPLEMENTED YET"}
-        val onlyLeader = ourLeaders[0]
-        val leaderUnderThreat = threats.any{it.to == onlyLeader}
+        val ourPieces = findCurrentAttackingPieces()
+        val ourLeader = findLeaderInPosList(ourPieces)
+        require(ourLeader != null) {"ERROR: NO LEADER?! (return false)"}
+        val leaderUnderThreat = threats.any{it.to == ourLeader}
 
         return leaderUnderThreat
     }
@@ -219,27 +206,25 @@ data class BoardState(
     }
 
     fun flipPlayer(): BoardState {
-        return BoardState(parent, board, turnNumber,attackingDirection.reflectRow() )
+        return BoardState(parent, board, turnNumber,attackingDirection.reflectRow())
+    }
+    // find leader
+    fun findLeaderInPosList(posList: List<Vector2D>): Vector2D? {
+        return board.findLeaderFromPositions(posList)
     }
 
-    /**
-     * Find leader positions
-     *
-     * @return
-     */
-    fun findLeaderPositions(): List<Vector2D> {
-        val pieces = findCurrentAttackingPieces()
-        val ourLeaders =  pieces.filter{board.isLeaderInIndex(it)}.map{Vector2D.fromIndex(it,Board.DEFAULT_DIMENSION)}
-        return ourLeaders
-    }
+    fun prettyPrintProgress() {
+        val end = this
+        var curr:BoardState? = end
+        while(curr != null) {
+            println("###")
+            println("turnNumber: $turnNumber, atkDir = $attackingDirection")
+            println("evaluation: ${StateEvaluator.findTacticalScore(this)}")
+            board.prettyPrint()
+            println("---")
+            curr = curr.parent
+        }
 
-    /**
-     * Find enemy leader positions
-     *
-     * @return
-     */
-    fun findEnemyLeaderPositions(): List<Vector2D> {
-        return this.flipPlayer().findLeaderPositions()
     }
 
 }
