@@ -15,39 +15,39 @@ class ValidActionGenerator {
         fun findAllValidActions(state: BoardState): List<Action> {
             // find attacking pieces
             val pieces = state.findCurrentAttackingPieces()
+            val actions:List<Action> = findActionsFromPosList(pieces, state)
             // if no leader return empty list
-            val ourLeaderPieces = state.findLeaderPositions()
-
-            if (!state.board.isLeaderInPositions(pieces)) return listOf()
+            val ourLeaderPiece = state.findLeaderInPosList(pieces) ?: return listOf()
             // if only leader piece left
             if (pieces.size == 1) return listOf()
 
-
+            // can we immediately capture enemy leader? if so, take those actions only
             val enemyPieces = state.findCurrentEnemyPieces()
-            val enemyLeaderPieces = state.findEnemyLeaderPositions()
-            require(enemyPieces.isNotEmpty()) {"somehow finding valid actions when enemy leader dead"}
-            // assume that there is only one enemy leader
-            val enemyLeaderPiece = enemyLeaderPieces[0]
+            val enemyLeaderPiece = state.findLeaderInPosList(enemyPieces)
+            if (enemyLeaderPiece == null) {
+                // no enemyLeader, just return emptyList
+                println("enemy leader already dead!!")
+                return listOf()
+            }
 
             // find all possible actions
-            // temporary workaround
-            // TODO: right now converting Ints to Vector2Ds (pieces is List<Int>), Board class should have pre-converted
-            val ourPositions = pieces.map{Vector2D.fromIndex(it, Board.DEFAULT_DIMENSION)}
-            val actions:List<Action> = findActionsFromPosList(ourPositions, state)
-
+            // if there is no enemy leader to kill just TODO: return actions
             // can we kill enemy leader immediately?
             val actionsThatKillEnemyLeader = actions.filter{it.to == enemyLeaderPiece}
             // yes, can win immediately
             if (actionsThatKillEnemyLeader.isNotEmpty()) return actionsThatKillEnemyLeader
             // no, can't win immediately
-
-
-            // TODO: actions that result us in threat are disallowed (should be handled by class that deals with state)
+            // TODO: wont check whether action will allow leader to be captured
             return actions
         }
 
+
+        //fun filterActionsThatKillEnemyLeader
+
         /**
          * Find actions from pos list
+         *
+         * (prevents inf recursion from using findAllValidActions()
          *
          * @param positions
          * @param state
@@ -56,9 +56,8 @@ class ValidActionGenerator {
         private fun findActionsFromPosList(positions: List<Vector2D>, state: BoardState): List<Action> {
             val actions:MutableList<Action> = mutableListOf()
             for (srcPos in positions) {
-                val validDests = findPossibleActionsForIndex(srcPos.getIndex(Board.DEFAULT_DIMENSION), state)
-                for (dest in validDests) {
-                    val destPos = Vector2D.fromIndex(dest, Board.DEFAULT_DIMENSION)
+                val validDests = findPossibleActionsForPosition(srcPos, state)
+                for (destPos in validDests) {
                     val action = Action(srcPos, destPos)
                     actions.add(action)
                 }
@@ -85,50 +84,50 @@ class ValidActionGenerator {
          * @param state
          * @return List<Int> of possible actions
          */
-        fun findPossibleActionsForIndex(index: Int, state: BoardState): List<Int> {
+        fun findPossibleActionsForPosition(pos: Vector2D, state: BoardState): List<Vector2D> {
             // assume that index always within bounds, and called by moving player
-            val c = state.board.board[index]
+            val c = state.board.getPieceChar(pos)
             val pieceChar = c.uppercaseChar()
-            var possibleEndIndices: List<Int> = listOf();
+            var possibleEndPos: List<Vector2D> = listOf();
             when (pieceChar) {
                 'P' -> {
-                    possibleEndIndices = findPawnActions(index, state)
+                    possibleEndPos = findPawnActions(pos, state)
                 }
 
                 'R' -> {
-                    possibleEndIndices = findRookActions(index, state)
+                    possibleEndPos = findRookActions(pos, state)
                 }
 
                 'B' -> {
-                    possibleEndIndices = findBishopActions(index, state)
+                    possibleEndPos = findBishopActions(pos, state)
                 }
 
                 'Q' -> {
-                    possibleEndIndices = findQueenActions(index, state)
+                    possibleEndPos = findQueenActions(pos, state)
                 }
 
                 'K' -> {
-                    possibleEndIndices = findKingActions(index, state)
+                    possibleEndPos = findKingActions(pos, state)
                 }
                 // xiangqi pieces
                 'Z' -> {
-                    possibleEndIndices = findFootSoldierActions(index, state)
+                    possibleEndPos = findFootSoldierActions(pos, state)
                 }
 
                 'M' -> {
-                    possibleEndIndices = findHorseActions(index, state)
+                    possibleEndPos = findHorseActions(pos, state)
                 }
 
                 'S' -> {
-                    possibleEndIndices = findScholarActions(index, state)
+                    possibleEndPos = findScholarActions(pos, state)
                 }
 
                 'G' -> {
-                    possibleEndIndices = findGeneralActions(index, state)
+                    possibleEndPos = findGeneralActions(pos, state)
                 }
 
                 'C' -> {
-                    possibleEndIndices = findCannonActions(index, state)
+                    possibleEndPos = findCannonActions(pos, state)
                 }
                 ' ' -> return listOf()
                 else -> {
@@ -150,7 +149,7 @@ class ValidActionGenerator {
                 */
 
             }
-            return possibleEndIndices
+            return possibleEndPos
         }
 
 
@@ -162,48 +161,42 @@ class ValidActionGenerator {
          * @param state
          * @return
          */
-        fun findPawnActions(index: Int, state: BoardState): List<Int> {
+        fun findPawnActions(pos: Vector2D, state: BoardState): List<Vector2D> {
             // unit vector for attack direction
 
-            val initialPos = Board.getPositionFromIndex(index)
-            val thisChar: Char = state.board.board[index]
-            val attackDirection = PieceType.findAttackDirection(thisChar)
-            val possibleEndIndices: MutableList<Int> = mutableListOf()
-
+            val unitDirections = Vector2D.STRAIGHTS
+            val initialPos = pos
+            val board = state.board
+            val possibleEndPos: MutableList<Vector2D> = mutableListOf()
+            val atkDir = PieceType.findAttackDirection(board.getPieceChar(initialPos))
             // look at possible movement
             var dist = 1
             while (dist <= 2) {
                 // check some end positions
-                val endPos = initialPos + (attackDirection * dist)
-                if (!Board.positionInsideBounds(endPos)) break;
-                val endIndex = Board.getIndexFromPosition(endPos)
+                val endPos = initialPos + (atkDir * dist)
+                if (!board.positionInsideBounds(endPos)) break;
 
                 // if end position is empty, then can move there
-                if (state.board.board[endIndex] == ' ') {
-                    possibleEndIndices.add(endIndex)
-                } else {
-                    break;
-                }
+                if (!board.isEmptyPos(endPos)) break
+                possibleEndPos.add(endPos)
                 dist += 1
             }
 
             // look at possible attacks
-            val endPosNW = initialPos + (Vector2D.NW * attackDirection.row)
-            val endPosNE = initialPos + (Vector2D.NE * attackDirection.row)
+            val endPosNW = initialPos + (Vector2D.NW * atkDir.row)
+            val endPosNE = initialPos + (Vector2D.NE * atkDir.row)
             val attackPositions: List<Vector2D> = listOf(endPosNE, endPosNW)
 
-            for (pos in attackPositions) {
-                if (!Board.positionInsideBounds(pos)) continue
-                // within bounds
-                val thatChar = state.board.getPieceChar(pos)
-                if (!PieceType.isEnemy(thisChar, thatChar)) continue
+            for (atk in attackPositions) {
+                if (!board.positionInsideBounds(atk)) continue
+                // within bounds, so check whether an enemy
+                if (!board.isEnemyPos(initialPos, atk)) continue
                 // is an enemy, so valid attack action
-                val endIndex = Board.getIndexFromPosition(pos)
-                possibleEndIndices.add(endIndex)
+                possibleEndPos.add(atk)
 
             }
 
-            return possibleEndIndices
+            return possibleEndPos
 
         }
 
@@ -214,14 +207,14 @@ class ValidActionGenerator {
          * @param state
          * @return
          */
-        fun findFootSoldierActions(index: Int, state: BoardState): List<Int> {
+        fun findFootSoldierActions(pos: Vector2D, state: BoardState): List<Vector2D> {
             // unit vector for attack direction
 
-            val initialPos = Board.getPositionFromIndex(index)
-            val thisChar: Char = state.board.board[index]
-            val attackDirection = PieceType.findAttackDirection(thisChar)
-            val possibleEndIndices: MutableList<Int> = mutableListOf()
+            val initialPos = pos
 
+            val possibleEndPos: MutableList<Vector2D> = mutableListOf()
+            val board = state.board
+            val attackDirection = PieceType.findAttackDirection(board.getPieceChar(initialPos))
             // before no mans land: move forward, attack forward
             // after no mans land: move and attack UP, LEFT and RIGHT
 
@@ -229,16 +222,18 @@ class ValidActionGenerator {
 
             for (dir in possibleActionVectors) {
                 val endPos: Vector2D = initialPos + dir
-                if (!Board.positionInsideBounds(endPos)) continue
-                // if endPos has an ally, not allowed to go there
-                val thatChar: Char = state.board.getPieceChar(endPos)
-                if (PieceType.isAlly(thisChar, thatChar)) continue
-                possibleEndIndices.add(Board.getIndexFromPosition(endPos))
+                if (!board.positionInsideBounds(endPos)) continue
+                if (board.isAllyPos(initialPos, endPos)) continue
+                // either an enemy or empty space
+                possibleEndPos.add(endPos)
 
                 // if we have NOT crossed half of the board. then ignore other moves
-                if (!Board.isPositionInNorth(initialPos)) break
+                val whichHalf = endPos.findWhichHalf(board.dimension)
+                // if we are attacking NORTH, crossed half when in NORTH (vice versa for SOUTH)
+                val crossedHalf = (whichHalf ==  attackDirection)
+                if (!crossedHalf) break
             }
-            return possibleEndIndices
+            return possibleEndPos
         }
 
         /**
@@ -246,80 +241,71 @@ class ValidActionGenerator {
          *
          * TODO: have maxDistance as a parameter
          *
-         * @param index
+         * @param pos
          * @param state
          * @param directions
          * @return
          */
-        fun findSliderActions(index: Int, state: BoardState, directions: List<Vector2D>): List<Int> {
+        fun findSliderActions(pos: Vector2D, state: BoardState, directions: List<Vector2D>): List<Vector2D> {
             // TODO: index, state, unitMovement, unitAttack, moveDist, attackDist, moveDirs, attackDirs, attackReqs
-
-            val initialPos = Board.getPositionFromIndex(index)
-            val thisChar: Char = state.board.board[index]
-            // val attackDirection = PieceType.findAttackDirection(thisChar)
-            val possibleEndIndices: MutableList<Int> = mutableListOf()
-
+            val initialPos = pos
+            val possibleEndPos: MutableList<Vector2D> = mutableListOf()
+            val board = state.board
 
             // extend in each unit direction, can move there as long as not an ally
             for (dir in directions) {
                 // extend in each direction until blocked or out-of-bounds
                 var endPos = initialPos + dir
-                while (Board.positionInsideBounds(endPos)) {
-
+                while (board.positionInsideBounds(endPos)) {
                     // if an ally, it is blocked
-                    val thatChar: Char = state.board.getPieceChar(endPos)
-                    if (PieceType.isAlly(thisChar, thatChar)) {
-                        break
-                    };
-                    possibleEndIndices.add(Board.getIndexFromPosition(endPos))
+                    if (board.isAllyPos(initialPos, endPos)) break
+                    // if empty space or will hit first enemy, add pos
+                    possibleEndPos.add(endPos)
                     // if hit an enemy, do not look further
-                    if (PieceType.isEnemy(thisChar, thatChar)) {
-                        break
-                    }
+                    if (board.isEnemyPos(initialPos, endPos)) break
                     endPos += dir
                 }
             }
 
-            return possibleEndIndices
+            return possibleEndPos
         }
-
         /**
          * Find rook actions
          *
-         * @param index
+         * @param pos
          * @param state
          * @return
          */
-        fun findRookActions(index: Int, state: BoardState): List<Int> {
+        fun findRookActions(pos: Vector2D, state: BoardState): List<Vector2D> {
             // Rook moves
             val unitDirections: List<Vector2D> = Vector2D.STRAIGHTS
-            return findSliderActions(index, state, unitDirections)
+            return findSliderActions(pos, state, unitDirections)
         }
 
         /**
          * Find bishop actions
          *
-         * @param index
+         * @param pos
          * @param state
          * @return
          */
-        fun findBishopActions(index: Int, state: BoardState): List<Int> {
+        fun findBishopActions(pos: Vector2D, state: BoardState): List<Vector2D> {
 
             // Bishop moves
             val unitDirections: List<Vector2D> = Vector2D.DIAGONALS
-            return findSliderActions(index, state, unitDirections)
+            return findSliderActions(pos, state, unitDirections)
         }
 
         /**
          * Find queen actions
          *
-         * @param index
+         * @param pos
          * @param state
          * @return
          */
-        fun findQueenActions(index: Int, state: BoardState): List<Int> {
+        fun findQueenActions(pos: Vector2D, state: BoardState): List<Vector2D> {
             val unitDirections: List<Vector2D> = Vector2D.OMNI_DIRS
-            return findSliderActions(index, state, unitDirections)
+            return findSliderActions(pos, state, unitDirections)
         }
 
         /**
@@ -328,82 +314,64 @@ class ValidActionGenerator {
          * In this variant, king can move into check
          * TODO: technically a slider with max distance of 1
          *
-         * @param index
+         * @param pos
          * @param state
          * @return
          */
-        fun findKingActions(index: Int, state: BoardState): List<Int> {
+        fun findKingActions(pos: Vector2D, state: BoardState): List<Vector2D> {
             val unitDirections: List<Vector2D> = Vector2D.OMNI_DIRS
-            val initialPos = Board.getPositionFromIndex(index)
-            val thisChar: Char = state.board.board[index]
-            val possibleEndIndices: MutableList<Int> = mutableListOf()
+            val initialPos = pos
+            val board = state.board
+            val possibleEndPos:MutableList<Vector2D> = mutableListOf()
 
             for (dir in unitDirections) {
                 // look at each end position
                 val endPos = initialPos + dir
-                if (Board.positionInsideBounds(endPos)) {
+                if (!board.positionInsideBounds(endPos)) continue
 
-                    // if an ally, it is blocked
-                    val thatChar: Char = state.board.getPieceChar(endPos)
-                    if (PieceType.isAlly(thisChar, thatChar)) {
-                        continue
-                    }
-                    possibleEndIndices.add(Board.getIndexFromPosition(endPos))
+                // if an ally, it is blocked
+                if (board.isAllyPos(initialPos, endPos)) continue
+                possibleEndPos.add(endPos)
 
-                }
             }
-
-            return possibleEndIndices
+            return possibleEndPos
         }
+
 
         /**
          * Find horse actions
          *
-         * // Technically, could fit under modified findSliderActions() but use this function for now
-         * // Lots of reusable code, refactor later after verifying it works
-         *
-         * @param index
+         * @param pos
          * @param state
          * @return
          */
-        fun findHorseActions(index: Int, state: BoardState): List<Int> {
+        fun findHorseActions(pos: Vector2D, state: BoardState): List<Vector2D> {
             val checkDirs: List<Vector2D> = Vector2D.STRAIGHTS
-            val initialPos = Board.getPositionFromIndex(index)
-            val thisChar: Char = state.board.board[index]
-            val possibleEndIndices: MutableList<Int> = mutableListOf()
+            val initialPos = pos
+            val possibleEndPos: MutableList<Vector2D> = mutableListOf()
+            val board = state.board
 
             for (dir in checkDirs) {
                 // look at each end position
                 val endPos = initialPos + dir
+                if (!board.positionInsideBounds(endPos)) continue
+                // if not an empty space, this direction is blocked
+                if (!board.isEmptyPos(endPos)) continue
+                // this direction is not blocked, so look at diagonals
+                // horse jump vectors
+                val jumpVectors: List<Vector2D> = Vector2D.getDirectionDiagonals(dir)
+                for (v in jumpVectors) {
+                    val finalJumpPosition = endPos + v
 
-                if (Board.positionInsideBounds(endPos)) {
+                    if (!board.positionInsideBounds(finalJumpPosition)) continue
+                    // destination is an ally
+                    if (board.isAllyPos(initialPos, finalJumpPosition)) continue
 
-                    // if not an empty space, this direction is blocked
-                    val aheadChar: Char = state.board.getPieceChar(endPos)
-                    if (aheadChar != ' ') {
-                        continue
+                    // we can do an "L" shaped jump
+                    possibleEndPos.add(finalJumpPosition)
                     }
-                    // this direction is not blocked, so look at diagonals
-                    // horse jump vectors
-                    val jumpVectors: List<Vector2D> = Vector2D.getDirectionDiagonals(dir)
-                    for (v in jumpVectors) {
-                        val finalJumpPosition = endPos + v
-
-                        if (Board.positionInsideBounds(finalJumpPosition)) {
-                            val thatChar: Char = state.board.getPieceChar(finalJumpPosition)
-                            if (PieceType.isAlly(thisChar, thatChar)) {
-                                continue
-                            }
-                            // we can do an "L" shaped jump
-                            possibleEndIndices.add(Board.getIndexFromPosition(finalJumpPosition))
-                        }
-                    }
-
-
                 }
-            }
-
-            return possibleEndIndices
+            return possibleEndPos
         }
 
         /**
@@ -411,97 +379,112 @@ class ValidActionGenerator {
          *
          * Hardcoded implementation, assumes a 6x6 board, and starts at Vector(3,0)
          *
-         * @param index
+         * @param pos
          * @param state
          * @return
          */
-        fun findScholarActions(index: Int, state: BoardState): List<Int> {
-            // Scholars can move in any direction, but must be within a 2 X 2 region
-            // hardcode the region for now
-            // assumptions: always 2x2 region, Vector(3,0) is starting position
-            val assumedStart = Vector2D(3, 0)
-            val north = assumedStart + Vector2D.NORTH
-            val west = assumedStart + Vector2D.WEST
-            val nw = assumedStart + Vector2D.NW
-            val possibleEndIndices: MutableList<Int> = mutableListOf()
-            val thisChar = state.board.board[index]
+        fun findScholarActions(pos: Vector2D, state: BoardState): List<Vector2D> {
+            // Scholars can move in any direction once, but must be within a 2x2 or 3x3 box in their half
+            val initialPos = pos
+            val board = state.board
+            val possibleEndPos:MutableList<Vector2D> = mutableListOf()
+            val startLocation = state.attackingDirection.reflectRow()
+            // find middle third
+            // ie: if width [.|.|.|.] take middle two, if width odd take middle three
+            val allowedPositions: List<Vector2D> = Vector2D.findMiddleRanges(board.dimension,startLocation)
+            // middleBoxPosList is guaranteed to be within bounds
+            val middleBoxPosList = allowedPositions.filter { board.positionInsideBounds(it) }
 
-            val allowedPositions: List<Vector2D> = listOf(assumedStart, north, west, nw)
-            for (p in allowedPositions) {
-                // if this position has an ally, not allowed to move here
-                val thatChar: Char = state.board.getPieceChar(p)
-
-                if (PieceType.isAlly(thisChar, thatChar)) {
-                    continue
-                }
-                // legal action
-                possibleEndIndices.add(Board.getIndexFromPosition(p))
+            val unitDirections = Vector2D.OMNI_DIRS
+            for (dir in unitDirections) {
+                // look at each end position
+                val endPos = initialPos + dir
+                // is that within middleBoxPositionsList?
+                if (!middleBoxPosList.contains(endPos)) continue
+                // if an ally, it is blocked
+                if (board.isAllyPos(initialPos, endPos)) continue
+                possibleEndPos.add(endPos)
             }
-            return possibleEndIndices
+            return possibleEndPos
         }
 
         /**
-         * Find General actions
+         * Find general actions
          *
-         * Hardcoded implementation, assumes a 6x6 board, and starts within specified 2x2 allowed positions
-         * uses same code as Scholar
-         *
-         * @param index
+         * @param pos
          * @param state
          * @return
          */
-        fun findGeneralActions(index: Int, state: BoardState): List<Int> = findScholarActions(index, state)
+        fun findGeneralActions(pos: Vector2D, state: BoardState): List<Vector2D> {
+            // Generals can move in any direction once, but must be within a 2x2 or 3x3 box in their half
+            val initialPos = pos
+            val board = state.board
+            val possibleEndPos:MutableList<Vector2D> = mutableListOf()
+            val startLocation = state.attackingDirection.reflectRow()
+            // find middle third
+            // ie: if width [.|.|.|.] take middle two, if width odd take middle three
+            val allowedPositions: List<Vector2D> = Vector2D.findMiddleRanges(board.dimension,startLocation)
+            // middleBoxPosList is guaranteed to be within bounds
+            val middleBoxPosList = allowedPositions.filter { board.positionInsideBounds(it) }
+
+            val unitDirections = Vector2D.OMNI_DIRS
+            for (dir in unitDirections) {
+                // look at each end position
+                val endPos = initialPos + dir
+                // is that within middleBoxPositionsList?
+                if (!middleBoxPosList.contains(endPos)) continue
+                // if an ally, it is blocked
+                if (board.isAllyPos(initialPos, endPos)) continue
+                possibleEndPos.add(endPos)
+            }
+            return possibleEndPos
+        }
 
         /**
          * Find cannon actions
          *
-         * @param index
+         * @param pos
          * @param state
          * @return
          */
-        fun findCannonActions(index: Int, state: BoardState): List<Int> {
+        fun findCannonActions(pos: Vector2D, state: BoardState): List<Vector2D> {
             // look at line of sight, if empty is legal move
             // if see first enemy, not allowed to move there unless second piece in that line of sight is an enemy
 
             val unitDirections = Vector2D.STRAIGHTS
-            val initialPos = Board.getPositionFromIndex(index)
-            val thisChar: Char = state.board.board[index]
-            val possibleEndIndices: MutableList<Int> = mutableListOf()
+            val initialPos = pos
+            val board = state.board
+            val possibleEndPos: MutableList<Vector2D> = mutableListOf()
+
 
             // for each line of sight
             for (dir in unitDirections) {
                 // look at each end position
                 var endPos = initialPos + dir
-
                 // first, find all empty spaces within this line of sight
-                while (Board.positionInsideBounds(endPos)) {
+                while (board.positionInsideBounds(endPos)) {
                     // if empty space, then add it in
-                    val thatChar = state.board.getPieceChar(endPos)
-                    if (thatChar != ' ') break
-                    possibleEndIndices.add(Board.getIndexFromPosition(endPos))
+                    if (!board.isEmptyPos(endPos)) break
+                    possibleEndPos.add(endPos)
                     endPos += dir
 
                 }
                 // second, look for second piece beyond the non-empty space
                 endPos += dir
-                while (Board.positionInsideBounds(endPos)) {
-                    //if empty keep searching and don't add, if enemy stop and add
-                    val destChar = state.board.getPieceChar(endPos)
-                    if (PieceType.isAlly(thisChar, destChar)) {
-                        // is ally, can't attack it so STOP
-                        break
-                    }
-                    if (PieceType.isEnemy(thisChar, destChar)) {
-                        // is enemy, can attack it, and STOP
-                        possibleEndIndices.add(Board.getIndexFromPosition(endPos))
-                        break
-                    }
+                while (board.positionInsideBounds(endPos)) {
+                    // can't attack on ally, STOP
+                    if (board.isAllyPos(initialPos, endPos)) break
 
+                    // can attack the first enemy, STOP
+                    if (board.isEnemyPos(initialPos, endPos)) {
+                        possibleEndPos.add(endPos)
+                        break
+                    }
+                    // if empty space, continue
                     endPos += dir
                 }
-
             }
-            return possibleEndIndices
+            return possibleEndPos
         }
     }
 
