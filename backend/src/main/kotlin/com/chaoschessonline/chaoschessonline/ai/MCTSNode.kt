@@ -122,7 +122,8 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
             val wins = c.wins
             val visits = c.visits
             val uctScore = c.uct()
-            println("board: $board")
+            println("board:")
+            board.prettyPrint()
             println("wins: $wins, visits: $visits, ratio: ${(1.0)*wins/visits}")
             println("uct: $uctScore")
         }
@@ -135,11 +136,20 @@ data class MCTSNode (val parent: MCTSNode?, val state: BoardState, val children:
         // look at untried States
         val startTime = System.currentTimeMillis()
         var immediateWin = false
+
+        // if root is terminal (either player has lost) then return
+        if (state.isTerminalState()) {
+            println("MCTS.run() stopped | already a terminal state")
+            return this
+        }
+
+
         println("<<>>>")
         println("root player: ${state.attackingDirection}")
         for (s in untriedStates) {
-            // if on nextState, enemy (player of next state) LOST, then skip MCTS
-            if (s.isTerminalStateForCurrentPlayer()) {
+            // if on nextState, enemy (player of next state) LOST, then skip MCTS //TIDO: assume we havne; lsot
+            // TODO: change has player lsot to can capture enemuy leader
+            if (s.hasPlayerLost()) {
                 println("next player: ${s.attackingDirection}")
                 println("next board: ${s.board}, which is a win for root player!")
                 // found an immediate win for us, add that as child
