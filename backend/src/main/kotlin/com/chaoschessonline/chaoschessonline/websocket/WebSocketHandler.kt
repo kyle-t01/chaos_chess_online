@@ -200,7 +200,9 @@ class WebSocketHandler (private val mapper: JsonMapper) : TextWebSocketHandler()
             }
             EventType.LEGAL_ACTIONS -> {
                 val idx = data.toString().toInt()
-                val validActionIdx = ValidActionGenerator.findPossibleActionsForIndex(idx, game.getCurrentState())
+                val pos = Vector2D.fromIndex(idx, game.getDimension())
+                val validActions = ValidActionGenerator.findPossibleActionsForPosition(pos, game.getCurrentState())
+                val validActionIdx = validActions.map {it.toIndex(game.getDimension())}
                 val replyEventType = EventType.SHOW_LEGAL_ACTIONS
                 println("validList of actions are: $validActionIdx")
                 emit(session, Event(replyEventType, validActionIdx))
