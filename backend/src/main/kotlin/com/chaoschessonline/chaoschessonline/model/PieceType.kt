@@ -49,6 +49,7 @@ enum class PieceType {
          */
         fun isAlly(us: Char, them: Char):Boolean {
             //require(us != ' ') {"us char must not be empty!"}
+            if (us == ' ') return false
             if (them == ' ') return false
             return us.isUpperCase() == them.isUpperCase()
         }
@@ -62,6 +63,7 @@ enum class PieceType {
          */
         fun isEnemy(us: Char, them: Char):Boolean {
             //require(us != ' '){"us char must not be empty!"}
+            if (us == ' ') return false
             if (them == ' ') return false
             return us.isUpperCase() != them.isUpperCase()
         }
